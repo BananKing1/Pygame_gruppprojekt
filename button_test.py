@@ -8,16 +8,17 @@ SCREEN_HEIGHT = info.current_h
 SCREEN_WIDTH = info.current_w
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption('Button Demo')
+pygame.display.set_caption('Buttons')
 
 #load button images
 start_img = pygame.image.load('sprites/start_btn.png').convert_alpha()
 exit_img = pygame.image.load('sprites/exit_btn.png').convert_alpha()
 
+button_y= SCREEN_HEIGHT/2
 
 #create button instances
-start_button = button.Button(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, start_img, 0.8)
-exit_button = button.Button(450, 200, exit_img, 0.8)
+start_button = button.Button(SCREEN_WIDTH/2 +100, button_y, start_img)
+exit_button = button.Button(SCREEN_HEIGHT/2 -100, button_y, exit_img)
 
 #game loop
 run = True
