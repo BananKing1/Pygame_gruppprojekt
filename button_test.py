@@ -35,6 +35,9 @@ while run:
 		if event.type == pygame.QUIT:
 			run = False
 
+	if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+		run =False
+
 	pygame.display.update()
 
 pygame.quit()
