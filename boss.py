@@ -46,7 +46,7 @@ class Boss(pygame.sprite.Sprite):
         else:
             self.rect.y += random.choice([-1, 1])
 
-    """Handle boss taking damage"""
+    # Handle boss taking damage
     def take_damage(self, amount):
         self.health -= amount
         print("Boss Health:", self.health)
