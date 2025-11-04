@@ -52,13 +52,19 @@ while running:
 
 
     # Move boss, beam, asteroids
-    boss_enemy.move()
+    boss_enemy.wiggle()
     boss_beam.move_beam(player, boss_enemy)
-    boss_beam.beam_hit_player(player, boss_enemy, player_health)
-    asteroid.move_asteroid(asteroid_speed, asteroid_size, SCREEN_WIDTH, SCREEN_HEIGHT)
-    small_asteroid.move_asteroid(asteroid_speed + 5, asteroid_size // 2, SCREEN_WIDTH, SCREEN_HEIGHT)   
-    small_asteroid_2.move_asteroid(asteroid_speed + 5, asteroid_size // 2, SCREEN_WIDTH, SCREEN_HEIGHT)   
+    asteroid.move_asteroid(asteroid_speed, SCREEN_WIDTH, SCREEN_HEIGHT)
+    small_asteroid.move_asteroid(asteroid_speed + 5, SCREEN_WIDTH, SCREEN_HEIGHT)   
+    small_asteroid_2.move_asteroid(asteroid_speed + 5, SCREEN_WIDTH, SCREEN_HEIGHT)   
+    
 
+    # Health
+    player_health = boss_beam.beam_hit_player(player, boss_enemy, player_health)
+    player_health = asteroid.collided_asteroid(player, asteroid.rect, player_health, SCREEN_WIDTH)
+    player_health = small_asteroid.collided_asteroid(player, small_asteroid.rect, player_health, SCREEN_WIDTH)
+    player_health = small_asteroid_2.collided_asteroid(player, small_asteroid_2.rect, player_health, SCREEN_WIDTH)
+    
     # Draw objects
     pygame.draw.rect(screen, (0, 0, 255), player)
     screen.blit(boss_enemy.image, boss_enemy.rect)
