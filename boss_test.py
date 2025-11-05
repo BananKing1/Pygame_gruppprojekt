@@ -19,14 +19,15 @@ background = Infinite_Background(SCREEN_WIDTH, SCREEN_HEIGHT, "backgrounds/boss_
 
 # Player (stats)
 player = pygame.Rect(200, 200, 50, 50)
-player_health = 3
+player_health = 20
+boss_health = 10
 
 # Make Boss & Asteroid objects
-boss_enemy = Boss(SCREEN_WIDTH, SCREEN_HEIGHT)
-boss_beam = Beam(boss_enemy.rect.centerx, boss_enemy.rect.centery, SCREEN_WIDTH, SCREEN_HEIGHT)
-asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 2) # create boss and pos for boss
-small_asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1) # create boss and pos for boss
-small_asteroid_2 = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1) # create boss and pos for boss
+boss_enemy = Boss(SCREEN_WIDTH, SCREEN_HEIGHT, 10)
+boss_beam = Beam(10, 2, boss_enemy)
+asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 2, 2) # create boss and pos for boss
+small_asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1, 1) # create boss and pos for boss
+small_asteroid_2 = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1, 1) # create boss and pos for boss
 
 # Asteroid stats
 asteroid_speed = 10
@@ -44,7 +45,7 @@ while running:
     screen.fill((0,0,0)) 
 
     # Draw scrolling background
-    background.draw(screen, scroll_speed=5)
+    background.draw_background(screen, scroll_speed=5)
 
     # ESC quits
     if pygame.key.get_pressed()[pygame.K_ESCAPE]:
@@ -52,17 +53,17 @@ while running:
 
 
     # Move boss, beam, asteroids
-    boss_enemy.wiggle()
-    boss_beam.move_beam(player, boss_enemy)
-    boss_beam.beam_reset(boss_enemy)
+    boss_enemy.shake()
+    boss_beam.shoot_beam(player, boss_enemy)
+    boss_beam.beam_reset(SCREEN_WIDTH, SCREEN_HEIGHT, boss_enemy)
    
-    asteroid.move_asteroid(asteroid_speed, SCREEN_WIDTH, SCREEN_HEIGHT)
-    small_asteroid.move_asteroid(asteroid_speed + 5, SCREEN_WIDTH, SCREEN_HEIGHT)   
-    small_asteroid_2.move_asteroid(asteroid_speed + 5, SCREEN_WIDTH, SCREEN_HEIGHT)   
+    asteroid.throw_asteroid(asteroid_speed, SCREEN_WIDTH)
+    small_asteroid.throw_asteroid(asteroid_speed + 5, SCREEN_WIDTH)   
+    small_asteroid_2.throw_asteroid(asteroid_speed + 5, SCREEN_WIDTH)   
     
 
     # Health
-    player_health = boss_beam.beam_hit_player(player, boss_enemy, player_health)
+    player_health = boss_beam.beam_hit_player(player, player_health, boss_enemy)
     player_health = asteroid.collided_asteroid(player, asteroid.rect, player_health, SCREEN_WIDTH)
     player_health = small_asteroid.collided_asteroid(player, small_asteroid.rect, player_health, SCREEN_WIDTH)
     player_health = small_asteroid_2.collided_asteroid(player, small_asteroid_2.rect, player_health, SCREEN_WIDTH)
@@ -76,3 +77,4 @@ while running:
     screen.blit(small_asteroid_2.image, small_asteroid_2.rect)
 
     pygame.display.update()
+pygame.quit()
