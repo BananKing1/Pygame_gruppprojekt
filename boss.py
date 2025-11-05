@@ -31,10 +31,10 @@ class Boss(pygame.sprite.Sprite):
 
 
     def wiggle(self):
-        # Horizontal wiggle and moving into frame
+        # Horizontal wiggle
         if self.rect.x < self.center_x - 100:
             self.rect.x += 1
-        elif self.rect.x > self.center_x :
+        elif self.rect.x > self.center_x : # Handles moving into frame
             self.rect.x -= 5
         else:
             self.rect.x += random.choice([-1, 1])
@@ -98,6 +98,7 @@ class Beam(Boss):
             self.rect.center = boss.rect.center  
 
         return health
+
 
 
 """Asteroid actions XD"""
