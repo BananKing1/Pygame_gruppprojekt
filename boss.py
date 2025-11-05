@@ -3,7 +3,7 @@ import random
 import math
 
 
-"""Big bad boss actions XD"""
+"""Big bad boss actions >:D"""
 class Boss(pygame.sprite.Sprite):
     # x and y are screen width and height
     def __init__(self, x, y, boss_health): 
@@ -58,7 +58,7 @@ class Boss(pygame.sprite.Sprite):
 
 
 """Boss BEAM XD"""
-class Beam(Boss):
+class Beam(pygame.sprite.Sprite):
     def __init__(self, beam_speed, beam_damage, boss):
         # load og sprite
         original_img = pygame.image.load("sprites/laserYellow_burst.png").convert_alpha()
