@@ -19,12 +19,12 @@ class Boss(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
        
         # Save center position for wiggle()
-        self.center_x = x/2
-        self.center_y = 0
+        self.center_x = (x-new_width)/2-100
+        self.center_y = y/9
 
         # Set initial position
-        self.rect.x = x
-        self.rect.y = self.center_y
+        self.rect.x = (x-new_width)/2
+        self.rect.y = 0-new_height
 
         # Boss health
         self.health = 10  
@@ -32,17 +32,17 @@ class Boss(pygame.sprite.Sprite):
 
     def wiggle(self):
         # Horizontal wiggle
-        if self.rect.x < self.center_x - 100:
+        if self.rect.x < self.center_x + 100:
             self.rect.x += 1
-        elif self.rect.x > self.center_x : # Handles moving into frame
+        elif self.rect.x > self.center_x-100 : # Handles moving into frame
             self.rect.x -= 1
         else:
             self.rect.x += random.choice([-1, 1])
 
         # Vertical wiggle
-        if self.rect.y < self.center_y - 100:
-            self.rect.y += 1
-        elif self.rect.y > self.center_y + 100:
+        if self.rect.y < self.center_y:
+            self.rect.y += 5
+        elif self.rect.y > self.center_y +50:
             self.rect.y -= 1
         else:
             self.rect.y += random.choice([-1, 1])
@@ -57,7 +57,7 @@ class Boss(pygame.sprite.Sprite):
 
 """Boss beam actions XD"""
 class Beam(Boss):
-    def __init__(self, x, y):
+    def __init__(self, x, y, sw, sh):
         super().__init__(x, y)  # pass x, y to Boss
 
         original_img = pygame.image.load("sprites/laserYellow_burst.png").convert_alpha()
@@ -69,19 +69,35 @@ class Beam(Boss):
         self.image = pygame.transform.scale(original_img, (new_width, new_height))
         self.rect = self.image.get_rect(center=(x, y))
 
-        self.speed = 15
+        # Save screen width and height
+        self.screen_width = sw
+        self.screen_height = sh
+
+        self.speed = 5
     
     def move_beam(self, player, boss):
         player_center = player.center  # pygame.Rect.center
         boss_center = boss.rect.center  # Boss rect
+        
+        distance_x = player_center[0] - boss_center[0]
+        distance_y = player_center[1] - boss_center[1]
 
-        dx = player_center[0] - boss_center[0]
-        dy = player_center[1] - boss_center[1]
+        """
+        if self.rect.x < player_center.x:
+            self.rect.x += self.speed
+        elif self.rect.x > player_center.x:
+            self.rect.x -= self.speed
 
-        magnitude = (dx ** 2 + dy ** 2) ** 0.5
+        if self.rect.y < player_center.y:
+            self.rect.y += self.speed  
+        elif self.rect.y > player_center.y:
+            self.rect.y -= self.speed
+
+        """
+        magnitude = (distance_x ** 2 + distance_y ** 2) ** 0.5 # Calculate distance (Pythagorean theorem)
 
         if magnitude != 0:
-            self.velocity = [dx / magnitude * self.speed, dy / magnitude * self.speed]
+            self.velocity = [distance_x / magnitude * self.speed, distance_y / magnitude * self.speed]
         else:
             self.velocity = [0, 0]
 
@@ -98,6 +114,13 @@ class Beam(Boss):
             self.rect.center = boss.rect.center  
 
         return health
+    
+    def beam_reset(self, boss):
+        if self.rect.y < 0 or self.rect.y > self.screen_height:
+            self.rect.center = boss.rect.center
+        
+        if self.rect.x < 0 or self.rect.x > self.screen_width:
+            self.rect.center = boss.rect.center
 
 
 

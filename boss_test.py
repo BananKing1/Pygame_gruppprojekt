@@ -23,7 +23,7 @@ player_health = 3
 
 # Make Boss & Asteroid objects
 boss_enemy = Boss(SCREEN_WIDTH, SCREEN_HEIGHT)
-boss_beam = Beam(boss_enemy.rect.centerx, boss_enemy.rect.centery)
+boss_beam = Beam(boss_enemy.rect.centerx, boss_enemy.rect.centery, SCREEN_WIDTH, SCREEN_HEIGHT)
 asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 3) # create boss and pos for boss
 small_asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1) # create boss and pos for boss
 small_asteroid_2 = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1) # create boss and pos for boss
@@ -54,6 +54,8 @@ while running:
     # Move boss, beam, asteroids
     boss_enemy.wiggle()
     boss_beam.move_beam(player, boss_enemy)
+    boss_beam.beam_reset(boss_enemy)
+   
     asteroid.move_asteroid(asteroid_speed, SCREEN_WIDTH, SCREEN_HEIGHT)
     small_asteroid.move_asteroid(asteroid_speed + 5, SCREEN_WIDTH, SCREEN_HEIGHT)   
     small_asteroid_2.move_asteroid(asteroid_speed + 5, SCREEN_WIDTH, SCREEN_HEIGHT)   
