@@ -1,4 +1,5 @@
 import pygame, sys, math
+from boss_file import Boss, Beam
 
 Color_bullet = (255, 230, 0)
 Color_player= (120, 160, 255)
@@ -29,116 +30,121 @@ class Infinite_Background:
         if abs(self.scroll) >= self.bg_width:
             self.scroll = 0
 # skapar en kula med startposition x,y och med hastigheten 10, samt storlek bredd, höjd
-class Bullet:
-    def __init__(self, x, y, speed = 10):
-        self.x = x
-        self.y = y
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y, speed=10):
+        super().__init__()
+        self.image = pygame.Surface((20,30), pygame.SRCALPHA)
+        self.image.fill((Color_bullet))
+        self.rect = self.image.get_rect(center=(x,y))
         self.speed = speed
-        self.width = 6
-        self.height = 10
     
     def update(self):
         # flyttar sig uppåt varje gång
-        self.y -= self.speed
-
-        # när kular går över skärmen så tas kulan bort
-    def outside(self):
-        return self.y < 0
-    
-    def draw(self, screen):
-        pygame.draw.rect(screen, Color_bullet, (self.x, self.y, self.width, self.height))
+        self.rect.y -= self.speed
+        if self.rect.bottom < 0:
+            self.kill()
     
 # Spelaren position, hastighet, kantmarginal så att den inte går ut från fönstrets kant osv.    
-class Player:
+class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, speed=6, margin = 30):
-        self.x = x
-        self.y = y
+        super().__init__()
+        img = pygame.image.load("alienBeige_stand.png").convert_alpha()
+        self.image = pygame.transform.scale(img, (100, 100))
+        self.rect = self.image.get_rect(center=(x,y))
         self.speed = speed
         self.margin = margin
-        self.bullet = []
-        self.image = None
+        self.bullets = pygame.sprite.Group()
 
-        try: 
-            img = pygame.image.load("alienBeige_stand.png").convert_alpha()
-            #skalar bilden på skärmen
-            self.image = pygame.transform.scale(img, (50, 50))
-        except Exception: 
-            self.image = None
-            self.fallback_size = 40
 
         # Den här delen flyytar figuren runt i spelet med tangenterna och skjuter kulor med space
     def handle_keys(self, keys, width, height):
-        if keys[pygame.K_LEFT] and self.x > self.margin:
-            self.x -= self.speed
-        if keys[pygame.K_RIGHT] and self.x < width - self.margin:
-            self.x += self.speed
-        if keys[pygame.K_UP] and self.y > self.margin:
-            self.y -= self.speed
-        if keys[pygame.K_DOWN] and self.y < height - self.margin:
-            self.y += self.speed
+        if keys[pygame.K_LEFT] and self.rect.left > self.margin:
+            self.rect.x -= self.speed
+        if keys[pygame.K_RIGHT] and self.rect.right < width - self.margin:
+            self.rect.x += self.speed
+        if keys[pygame.K_UP] and self.rect.top > self.margin:
+            self.rect.y -= self.speed
+        if keys[pygame.K_DOWN] and self.rect.bottom < height - self.margin:
+            self.rect.y += self.speed
 
     # det gör att man inte kan skjuta jättemånga kulor samtidigt, om det inte finns några kulor ute eller är minst 50 pixlar uppåt så skapas en ny kula
     def shoot(self):
-        if len(self.bullet) == 0 or self.bullet[-1].y < self.y - 50:
-            self.bullet.append(Bullet(self.x, self.y))
+        if len(self.bullets) == 0:
+            self.bullets.add(Bullet(self.rect.centerx, self.rect.top))
+            return
+        
+        last = self.bullets.sprites()[-1]
+        if (self.rect.centery - last.rect.centery) > 50:
+            self.bullets.add(Bullet(self.rect.centerx, self.rect.top))
+                                  
 
     # Flyttar alla kulor och tar bort de som har flugit utanför skärmen
-    def update_bullets(self):
-        for k in self.bullet[:]:
-            k.update()
-            if k.outside():
-                self.bullet.remove(k)
-    
-    # Ritar antingen bilden, eller en blå fyrkant om bilden saknas
-    def draw(self, screen):
-        if self.image:
-            screen.blit(self.image, (self.x - self.image.get_width()//2, self.y - self.image.get_height()//2 ))
+    def update(self):
+        self.bullets.update()
 
-        else:
-            pygame.draw.rect(
-            screen, Color_player,
-            (self.x - self.fallback_size//2, self.y - self.fallback_size//2,
-            self.fallback_size, self.fallback_size)
-            )
-        # Ritar kulorna
-        for k in self.bullet:
-            k.draw(screen)
 
 def main():
     pygame.init()
-    # gör ett spelfönster som är 600 x 400
-    width, height = 600, 400
+    screen = pygame.display.set_mode((0, 0))
+    width, height = screen.get_size()
+    pygame.display.set_caption("shooter - sprite-version")
     screen = pygame.display.set_mode((width, height))
-    # håller koll på tiden så att spelet inte går för snabbt
+
     clock = pygame.time.Clock()
-    # används för texten liv
     font = pygame.font.SysFont(None, 30)
 
     background = Infinite_Background(width, height, "backgrounds/boss_bg_img.png")
-    # skapar spelaren mitt på skärmen, och sen är spelet igång
     player = Player(width//2, height - 80)
     lives = 3
-    running = True
 
-    # körs 60 gånger per sekund
+    enemy_bullets = pygame.sprite.Group()
+    
+    boss = Boss(width, height)
+    beam = Beam(boss.rect.centerx, boss.rect.centery)
+
+    lives = 5
+
+    all_sprites = pygame.sprite.Group(player)
+    
+    running = True
     while running:
         clock.tick(FPS)
-        # om man stänger fönstret så avslutas spelet
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 running = False
-        # flyttar spelaren
-        keys = pygame.key.get_pressed()
-        player.handle_keys(keys, width, height)
-        # skjuter med mellanslag
-        if keys[pygame.K_SPACE]:
-            player.shoot()
+            elif e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_ESCAPE:
+                    running = False
+                elif e.key == pygame.K_SPACE:
+                    player.shoot()
 
-        player.update_bullets()
-        #bakgrunden, samt ritar spelaren och kulorna
-    
+        keys = pygame.key.get_pressed()
+        player.handle_keys(keys, width, height)  
+
+        all_sprites.update()
+        boss.wiggle()
+        beam.move_beam(player.rect, boss)
+
+        hits = pygame.sprite.spritecollide(player, enemy_bullets, True)
+        if hits:
+            lives -= len(hits)
+            print(f"The player got shooted! Lives left: {lives}")
+
+            if lives <= 0:
+                print("The player died! Game Over")
+                running = False
+
+            lives = beam.beam_hit_player(player.rect, boss, lives)
+            if lives <= 0: 
+                print("The player died! Game over")
+                running = False
+
         background.draw(screen, scroll_speed=5)
-        player.draw(screen)
+        all_sprites.draw(screen)
+        player.bullets.draw(screen)
+
+        screen.blit(boss.image, boss.rect)
+        screen.blit(beam.image, beam.rect)
 
         # skriver "liv: 3" i röd text uppe till vänster
         text = font.render(f"Lives: {lives}", True, Color_text)
