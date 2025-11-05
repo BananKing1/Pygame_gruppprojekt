@@ -1,6 +1,7 @@
 import pygame
 import button
 from boss import Boss, Beam, Asteroid, Infinite_Background 
+from main_character import Player
 
 pygame.init()
 #create display window
@@ -20,6 +21,8 @@ button_y= SCREEN_HEIGHT/2
 #create button instances
 start_button = button.Button(SCREEN_WIDTH/2 +100, button_y, start_img)
 exit_button = button.Button(SCREEN_HEIGHT/2 -100, button_y, exit_img)
+
+main_character = Player(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 clock = pygame.time.Clock()
 
@@ -42,6 +45,7 @@ while run:
 
 	if start_button.draw(screen):
 		print('START')
+
 
 	if exit_button.draw(screen):
 		print('EXIT')

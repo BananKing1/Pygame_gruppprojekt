@@ -19,8 +19,8 @@ class Boss(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
        
         # Save center position for wiggle()
-        self.center_x = x - 300
-        self.center_y = y - 500
+        self.center_x = x/2
+        self.center_y = 0
 
         # Set initial position
         self.rect.x = x
@@ -35,7 +35,7 @@ class Boss(pygame.sprite.Sprite):
         if self.rect.x < self.center_x - 100:
             self.rect.x += 1
         elif self.rect.x > self.center_x : # Handles moving into frame
-            self.rect.x -= 5
+            self.rect.x -= 1
         else:
             self.rect.x += random.choice([-1, 1])
 
