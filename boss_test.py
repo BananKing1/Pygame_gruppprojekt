@@ -1,7 +1,6 @@
 import pygame
 from boss import Boss, Beam, Asteroid, Infinite_Background
 
-
 pygame.init()
 
 # Screen
@@ -24,13 +23,13 @@ boss_health = 10
 
 # Make Boss & Asteroid objects
 boss_enemy = Boss(SCREEN_WIDTH, SCREEN_HEIGHT, 10)
-boss_beam = Beam(10, 2, boss_enemy)
+boss_beam = Beam(5, 2, boss_enemy)
 asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 2, 2) # create boss and pos for boss
 small_asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1, 1) # create boss and pos for boss
 small_asteroid_2 = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1, 1) # create boss and pos for boss
 
 # Asteroid stats
-asteroid_speed = 10
+asteroid_speed = 9
 asteroid_size = 50
 
 
@@ -45,16 +44,28 @@ while running:
     screen.fill((0,0,0)) 
 
     # Draw scrolling background
-    background.draw_background(screen, scroll_speed=5)
+    background.draw_background(screen, 5)
 
     # ESC quits
     if pygame.key.get_pressed()[pygame.K_ESCAPE]:
         running = False
+    
+    
+    keys = pygame.key.get_pressed()
 
+    if keys[pygame.K_LEFT] and player.left > 0:
+        player.x -= 20
+    if keys[pygame.K_RIGHT] and player.right < SCREEN_WIDTH:
+        player.x += 20
+    if keys[pygame.K_UP] and player.top > 0:
+        player.y -= 20
+    if keys[pygame.K_DOWN] and player.bottom < SCREEN_HEIGHT:
+        player.y += 20
+    
 
     # Move boss, beam, asteroids
     boss_enemy.shake()
-    boss_beam.shoot_beam(player, boss_enemy)
+    boss_beam.shoot_beam(player)
     boss_beam.beam_reset(SCREEN_WIDTH, SCREEN_HEIGHT, boss_enemy)
    
     asteroid.throw_asteroid(asteroid_speed, SCREEN_WIDTH)

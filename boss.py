@@ -32,7 +32,7 @@ class Boss(pygame.sprite.Sprite):
 
     # for boss shaking and staying in frame
     def shake(self):
-        # shake left and right
+        # shake horiziontally
         if self.rect.x < self.pos_x + 100:
             self.rect.x += 1
         elif self.rect.x > self.pos_x-100 : # boss moves into frame
@@ -40,8 +40,8 @@ class Boss(pygame.sprite.Sprite):
         else:
             self.rect.x += random.choice([-1, 1])
 
-        # shake up and down
-        #boss move into frame
+        # shake vertically
+        #boss move into frame (from top)
         if self.rect.y < self.pos_y:
             self.rect.y += 5
         elif self.rect.y > self.pos_y +50:
@@ -71,32 +71,31 @@ class Beam(Boss):
         
         # create hitbox
         self.rect = self.image.get_rect()
-        self.beam_center = boss.rect.center
+
+        self.rect.x = boss.rect.center[0]
+        self.rect.y = boss.rect.center[1]
 
         # save beam_speed for shoot_beam()
         self.beam_speed = beam_speed
         self.beam_damage = beam_damage
 
-    # shoot beam to player from boss
-    def shoot_beam(self, player, boss): 
+    # shoot beam to player, beam continues to chase player
+    def shoot_beam(self, player): 
+        # find player and beam center coordinates
         player_center = player.center 
-        boss_center = boss.rect.center 
+        beam_center = self.rect.center 
 
-        if player_center[0] < self.beam_center[0]:
+        # if the beam is to the left or right of the player, move towards the player
+        if player_center[0] < beam_center[0]:
             self.rect.x -= self.beam_speed
-        elif player_center[0] > self.beam_center[0]:
+        elif player_center[0] > beam_center[0]:
             self.rect.x += self.beam_speed
-        else:
-            pass
 
-        if player_center[1] < self.beam_center[1]:
+        # if the beam is to the top or bottom of the player, move towards the player
+        if player_center[1]  < beam_center[1]:
             self.rect.y -= self.beam_speed
-        elif player_center[1] > self.beam_center[1]:
+        elif player_center[1] > beam_center[1]:
             self.rect.y += self.beam_speed
-        else:
-            pass
-
-
     
     # check collision between beam and player
     def beam_hit_player(self, player, player_health, boss):
@@ -150,7 +149,7 @@ class Asteroid(pygame.sprite.Sprite):
         # Save asteroid damage (for collided_asteroid())
         self.asteroid_damage = asteroid_damage
 
-    # reset x once asteroid has reached left side of screen
+    # reset to x=0 once asteroid has reached left side of screen
     def throw_asteroid(self, speed, sw):
         if self.rect.x > 0-self.new_width:
             self.rect.x -= speed
@@ -162,8 +161,8 @@ class Asteroid(pygame.sprite.Sprite):
     def collided_asteroid(self, object1, asteroid, player_health, sw):
         if object1.colliderect(asteroid):
             # reset asteroid position (right side of screen, random y)
-            asteroid.x = sw
-            asteroid.y = random.randint(0, 750)
+            self.rect.x = sw
+            self.rect.y = random.randint(0, 750)
             
             # Decrease health on hit
             player_health -= self.asteroid_damage  
@@ -177,15 +176,15 @@ class Infinite_Background:
         # load background
         self.bg = pygame.image.load(bg_path).convert()
         self.bg_width  = self.bg.get_width()
-        self.bg_height = self.bg.get_height()
 
         self.scroll = 0
+        # the numbers of pictures ti fill the screen
         self.tiles = math.ceil(sw / self.bg_width) + 1
         
+        # save screen width and height for draw_background()
         self.screen_width = sw
-        self.screen_height = sh
 
-    def draw_background(self, screen, scroll_speed):
+    def draw_background(self,screen, scroll_speed):
         # Draw scrolling background
         for i in range(self.tiles):
             screen.blit(self.bg, (i * self.bg_width + self.scroll, 0))
@@ -193,4 +192,4 @@ class Infinite_Background:
         # Update scroll
         self.scroll -= scroll_speed
         if abs(self.scroll) >= self.bg_width:
-            self.scroll = 0
+            self.scroll = 0     
