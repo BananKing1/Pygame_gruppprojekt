@@ -1,101 +1,123 @@
-import pygame, sys
+import pygame, sys, math
 
-Färg_kula = (255, 230, 0)
-Färg_spelare = (120, 160, 255)
-Färg_bakgrund = (20, 20, 30)
-Färg_text = (220, 70, 70)
+Color_bullet = (255, 230, 0)
+Color_player= (120, 160, 255)
+Color_text = (220, 70, 70)
 FPS = 60
 Debug = False
 
+
+class Infinite_Background:
+    def __init__(self, screen_width, screen_height, bg_path):
+        self.bg = pygame.image.load(bg_path).convert()
+        self.bg_width  = self.bg.get_width()
+        self.bg_height = self.bg.get_height()
+
+        self.scroll = 0
+        self.tiles = math.ceil(screen_width / self.bg_width) + 1
+        
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+
+    def draw(self, screen, scroll_speed):
+        # Draw scrolling background
+        for i in range(self.tiles):
+            screen.blit(self.bg, (i * self.bg_width + self.scroll, 0))
+
+        # Update scroll
+        self.scroll -= scroll_speed
+        if abs(self.scroll) >= self.bg_width:
+            self.scroll = 0
 # skapar en kula med startposition x,y och med hastigheten 10, samt storlek bredd, höjd
-class Kula:
-    def __init__(self, x, y, fart = 10):
+class Bullet:
+    def __init__(self, x, y, speed = 10):
         self.x = x
         self.y = y
-        self.fart = fart
-        self.bredd = 6
-        self.höjd = 10
+        self.speed = speed
+        self.width = 6
+        self.height = 10
     
-    def uppdatera(self):
+    def update(self):
         # flyttar sig uppåt varje gång
-        self.y -= self.fart
+        self.y -= self.speed
 
         # när kular går över skärmen så tas kulan bort
-    def utanför(self):
+    def outside(self):
         return self.y < 0
     
-    def rita(self, skärm):
-        pygame.draw.rect(skärm, Färg_kula, (self.x-3, self.y - 10, self.bredd, self.höjd))
+    def draw(self, screen):
+        pygame.draw.rect(screen, Color_bullet, (self.x, self.y, self.width, self.height))
     
 # Spelaren position, hastighet, kantmarginal så att den inte går ut från fönstrets kant osv.    
-class Spelare:
-    def __init__(self, x, y, fart=6, marginal = 30):
+class Player:
+    def __init__(self, x, y, speed=6, margin = 30):
         self.x = x
         self.y = y
-        self.fart = fart
-        self.marginal = marginal
-        self.kulor = []
-        self.bild = None
+        self.speed = speed
+        self.margin = margin
+        self.bullet = []
+        self.image = None
 
         try: 
             img = pygame.image.load("alienBeige_stand.png").convert_alpha()
             #skalar bilden på skärmen
-            self.bild = pygame.transform.scale(img, (50, 50))
+            self.image = pygame.transform.scale(img, (50, 50))
         except Exception: 
-            self.bild = None
+            self.image = None
             self.fallback_size = 40
 
         # Den här delen flyytar figuren runt i spelet med tangenterna och skjuter kulor med space
-    def tangenter(self, keys, bredd, höjd):
-        if keys[pygame.K_LEFT] and self.x > self.marginal:
-            self.x -= self.fart
-        if keys[pygame.K_RIGHT] and self.x < bredd - self.marginal:
-            self.x += self.fart
-        if keys[pygame.K_UP] and self.y > self.marginal:
-            self.y -= self.fart
-        if keys[pygame.K_DOWN] and self.y < höjd - self.marginal:
-            self.y += self.fart
+    def handle_keys(self, keys, width, height):
+        if keys[pygame.K_LEFT] and self.x > self.margin:
+            self.x -= self.speed
+        if keys[pygame.K_RIGHT] and self.x < width - self.margin:
+            self.x += self.speed
+        if keys[pygame.K_UP] and self.y > self.margin:
+            self.y -= self.speed
+        if keys[pygame.K_DOWN] and self.y < height - self.margin:
+            self.y += self.speed
 
     # det gör att man inte kan skjuta jättemånga kulor samtidigt, om det inte finns några kulor ute eller är minst 50 pixlar uppåt så skapas en ny kula
-    def skjut(self):
-        if len(self.kulor) == 0 or self.kulor[-1].y < self.y - 50:
-            self.kulor.append(Kula(self.x, self.y))
+    def shoot(self):
+        if len(self.bullet) == 0 or self.bullet[-1].y < self.y - 50:
+            self.bullet.append(Bullet(self.x, self.y))
 
     # Flyttar alla kulor och tar bort de som har flugit utanför skärmen
-    def uppdaterar_kulor(self):
-        for k in self.kulor[:]:
-            k.uppdatera()
-            if k.utanför():
-                self.kulor.remove(k)
+    def update_bullets(self):
+        for k in self.bullet[:]:
+            k.update()
+            if k.outside():
+                self.bullet.remove(k)
     
     # Ritar antingen bilden, eller en blå fyrkant om bilden saknas
-    def rita(self, skärm):
-        if self.bild:
-            skärm.blit(self.bild, (self.x - self.bild.get_width()//2, self.y - self.bild.get_height()//2 ))
+    def draw(self, screen):
+        if self.image:
+            screen.blit(self.image, (self.x - self.image.get_width()//2, self.y - self.image.get_height()//2 ))
 
         else:
             pygame.draw.rect(
-            skärm, Färg_spelare,
+            screen, Color_player,
             (self.x - self.fallback_size//2, self.y - self.fallback_size//2,
             self.fallback_size, self.fallback_size)
             )
         # Ritar kulorna
-        for k in self.kulor:
-            k.rita(skärm)
+        for k in self.bullet:
+            k.draw(screen)
 
 def main():
     pygame.init()
     # gör ett spelfönster som är 600 x 400
-    bredd, höjd = 600, 400
-    skärm = pygame.display.set_mode((bredd, höjd))
+    width, height = 600, 400
+    screen = pygame.display.set_mode((width, height))
     # håller koll på tiden så att spelet inte går för snabbt
     clock = pygame.time.Clock()
     # används för texten liv
     font = pygame.font.SysFont(None, 30)
 
+    background = Infinite_Background(width, height, "backgrounds/boss_bg_img.png")
     # skapar spelaren mitt på skärmen, och sen är spelet igång
-    spelare = Spelare(bredd//2, höjd - 80)
-    liv = 3
+    player = Player(width//2, height - 80)
+    lives = 3
     running = True
 
     # körs 60 gånger per sekund
@@ -107,19 +129,20 @@ def main():
                 running = False
         # flyttar spelaren
         keys = pygame.key.get_pressed()
-        spelare.tangenter(keys, bredd, höjd)
+        player.handle_keys(keys, width, height)
         # skjuter med mellanslag
         if keys[pygame.K_SPACE]:
-            spelare.skjut()
+            player.shoot()
 
-        spelare.uppdaterar_kulor()
+        player.update_bullets()
         #bakgrunden, samt ritar spelaren och kulorna
-        skärm.fill(Färg_bakgrund)
-        spelare.rita(skärm)
+    
+        background.draw(screen, scroll_speed=5)
+        player.draw(screen)
 
         # skriver "liv: 3" i röd text uppe till vänster
-        text = font.render(f"Liv: {liv}", True, Färg_text)
-        skärm.blit(text, (10, 10))
+        text = font.render(f"Lives: {lives}", True, Color_text)
+        screen.blit(text, (10, 10))
 
         pygame.display.flip()
     pygame.quit()
