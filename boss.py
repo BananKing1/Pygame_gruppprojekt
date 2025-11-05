@@ -73,7 +73,7 @@ class Beam(Boss):
         self.screen_width = sw
         self.screen_height = sh
 
-        self.speed = 5
+        self.speed = 10
     
     def move_beam(self, player, boss):
         player_center = player.center  # pygame.Rect.center
@@ -168,7 +168,7 @@ class Asteroid(pygame.sprite.Sprite):
             object2.x = sw
             object2.y = random.randint(0, 750)
             health -= 1  # Decrease health on hit
-            print("Plaer health:", health)
+            print("Player health:", health)
         return health
 
 

@@ -24,7 +24,7 @@ player_health = 3
 # Make Boss & Asteroid objects
 boss_enemy = Boss(SCREEN_WIDTH, SCREEN_HEIGHT)
 boss_beam = Beam(boss_enemy.rect.centerx, boss_enemy.rect.centery, SCREEN_WIDTH, SCREEN_HEIGHT)
-asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 3) # create boss and pos for boss
+asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 2) # create boss and pos for boss
 small_asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1) # create boss and pos for boss
 small_asteroid_2 = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1) # create boss and pos for boss
 
