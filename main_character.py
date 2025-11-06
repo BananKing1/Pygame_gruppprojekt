@@ -69,6 +69,7 @@ class Player(pygame.sprite.Sprite):
         if hits:
             self.lives -= len(hits)  # Minska liv per träff
             print(f"Got shot! Lives left: {self.lives}")
+        return self.lives
 
     def check_beam_hit(self, beam, boss):
         # Kollar om bossens beam träffas spelaren
