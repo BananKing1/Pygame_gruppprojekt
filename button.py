@@ -3,27 +3,30 @@ import pygame
 #button class
 class Button():
 	def __init__(self, x, y, image):
-		#width = image.get_width()
-		#height = image.get_height()
+		
 		self.image = image
-		#pygame.transform#(image, (int(width * scale), int(height * scale)))
+		
 		self.rect = self.image.get_rect()
 		self.rect.topleft = (x, y)
 		self.clicked = False
+		self.removed=False
 
-	def draw(self, surface):
+	def draw(self, screen):
 		action = False
 		mouse = pygame.mouse.get_pos()
+		if not self.removed:
 
-		if self.rect.collidepoint(mouse):
-			if any(pygame.mouse.get_pressed()) and not self.clicked:
-				self.clicked = True
-				action = True
+			if self.rect.collidepoint(mouse):
+				if any(pygame.mouse.get_pressed()) and not self.clicked:
+					self.clicked = True
+					action = True
 
-		if pygame.mouse.get_pressed()[0] == 0:
-			self.clicked = False
+			if not any(pygame.mouse.get_pressed()):
+				self.clicked = False
 
-		
-		surface.blit(self.image, (self.rect.x, self.rect.y))
+			
+			screen.blit(self.image, (self.rect.x, self.rect.y))
 
-		return action
+			return action
+	def remove(self):
+		self.removed=True

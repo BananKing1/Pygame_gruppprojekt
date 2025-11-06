@@ -52,6 +52,8 @@ while run:
 	background.draw_background(screen, scroll_speed=5)
 
 	if start_button.draw(screen):
+		start_button.remove()
+		exit_button.remove()
 		print('START')
 
 
@@ -73,7 +75,7 @@ while run:
 	main_character_bullet.update()
 
 	screen.blit(main_character.image, main_character.rect)
-	main_character_bullet.draw(screen)
+	#main_character_bullet.draw(screen)
 
 	pygame.display.update()
 
