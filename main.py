@@ -1,7 +1,7 @@
 import pygame
 import button
 from boss import Boss, Beam, Asteroid, Infinite_Background 
-from main_character import Player
+from main_character import Player, Bullet
 
 pygame.init()
 #create display window
@@ -22,7 +22,8 @@ button_y= SCREEN_HEIGHT/2
 start_button = button.Button(SCREEN_WIDTH/2 +100, button_y, start_img)
 exit_button = button.Button(SCREEN_HEIGHT/2 -100, button_y, exit_img)
 
-main_character = Player(SCREEN_WIDTH, SCREEN_HEIGHT)
+main_character = Player(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 80, speed=6, margin=30)
+main_character_bullet = Bullet(main_character.rect.centerx, main_character.rect.top, -10)
 
 clock = pygame.time.Clock()
 
@@ -33,15 +34,22 @@ background = Infinite_Background(SCREEN_WIDTH, SCREEN_HEIGHT, "backgrounds/boss_
 run = True
 while run:
 	clock.tick(60) #tick speed
+	keys = pygame.key.get_pressed()
 
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT:
-			run = False
+	for e in pygame.event.get():
+		if e.type == pygame.QUIT:
+			running = False
+		elif e.type == pygame.KEYDOWN:
+		# Tryck ESC för att avsluta spelet
+			if e.key == pygame.K_ESCAPE:
+				running = False
+			elif e.key == pygame.K_SPACE:
+				main_character.shoot()
 	
 	screen.fill((0,0,0))
 
     # Draw scrolling background
-	background.draw(screen, scroll_speed=5)
+	background.draw_background(screen, scroll_speed=5)
 
 	if start_button.draw(screen):
 		print('START')
@@ -59,6 +67,13 @@ while run:
 
 	if pygame.key.get_pressed()[pygame.K_ESCAPE]:
 		run =False
+
+	main_character.handle_keys(keys, SCREEN_WIDTH, SCREEN_HEIGHT)
+	main_character.update()
+	main_character_bullet.update()
+
+	screen.blit(main_character.image, main_character.rect)
+	main_character_bullet.draw(screen)
 
 	pygame.display.update()
 
