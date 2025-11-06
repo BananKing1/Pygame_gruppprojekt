@@ -69,8 +69,8 @@ while running:
     boss_beam.beam_reset(SCREEN_WIDTH, SCREEN_HEIGHT, boss_enemy)
    
     asteroid.throw_asteroid(asteroid_speed, SCREEN_WIDTH)
-    small_asteroid.throw_asteroid(asteroid_speed + 5, SCREEN_WIDTH)   
-    small_asteroid_2.throw_asteroid(asteroid_speed + 5, SCREEN_WIDTH)   
+    small_asteroid.throw_asteroid(asteroid_speed + 1, SCREEN_WIDTH)   
+    small_asteroid_2.throw_asteroid(asteroid_speed + 2, SCREEN_WIDTH)   
     
 
     # Health
