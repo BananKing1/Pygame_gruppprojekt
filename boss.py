@@ -6,7 +6,8 @@ import math
 """Big bad boss actions >:D"""
 class Boss(pygame.sprite.Sprite):
     # x and y are screen width and height
-    def __init__(self, x, y, boss_health): 
+    def __init__(self, sw, sh, boss_health): 
+        super().__init__()
         # load og sprite
         original_sprite = pygame.image.load("sprites/shipYellow_manned.png").convert_alpha()
 
@@ -20,11 +21,11 @@ class Boss(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
        
         # save desired position for shake()
-        self.pos_x = (x-new_width)/2-100
-        self.pos_y = y/9
+        self.pos_x = (sw-new_width)/2-100
+        self.pos_y = sh/9
 
         # Set start position (before moving into frame)
-        self.rect.x = (x-new_width)/2
+        self.rect.x = (sw-new_width)/2
         self.rect.y = 0-new_height
 
         # Save boss health
@@ -50,16 +51,22 @@ class Boss(pygame.sprite.Sprite):
             self.rect.y += random.choice([-1, 1])
 
     # boss health and death
-    def take_damage(self):
-        self.health -= 1
-        print("Boss health:", self.health)
+    def take_damage(self, bullets):
+        # check for collision between boss and player bullet
+        if pygame.sprite.spritecollide(self, bullets, True):
+            self.health -= 1
+            print("Boss health:", self.health)
         if self.health <= 0:
             print("You win, yippie!")
+
+        return self.health
 
 
 """Boss BEAM XD"""
 class Beam(pygame.sprite.Sprite):
     def __init__(self, beam_speed, beam_damage, boss):
+        super().__init__()
+
         # load og sprite
         original_img = pygame.image.load("sprites/laserYellow_burst.png").convert_alpha()
 
@@ -82,7 +89,7 @@ class Beam(pygame.sprite.Sprite):
     # shoot beam to player, beam continues to chase player
     def shoot_beam(self, player): 
         # find player and beam center coordinates
-        player_center = player.center 
+        player_center = player.rect.center
         beam_center = self.rect.center 
 
         # if the beam is to the left or right of the player, move towards the player
@@ -103,7 +110,7 @@ class Beam(pygame.sprite.Sprite):
         boss_center  = boss.rect.center
 
         # Check collision between beam and player
-        if self.rect.colliderect(player):
+        if player.rect.colliderect(self.rect):
 
             # player takes damage
             player_health -= 1
@@ -131,6 +138,7 @@ class Beam(pygame.sprite.Sprite):
 class Asteroid(pygame.sprite.Sprite):
     # attributes: sw (screen width), sh (screen height)
     def __init__(self, sw, sh, scale, asteroid_damage):
+        super().__init__()
         # load og sprite
         original_sprite = pygame.image.load("sprites/spinner.png").convert_alpha()
                 
@@ -158,8 +166,8 @@ class Asteroid(pygame.sprite.Sprite):
             self.rect.y = random.randint(0, 750)
 
     # Player collide with asteroid
-    def collided_asteroid(self, object1, asteroid, player_health, sw):
-        if object1.colliderect(asteroid):
+    def collided_asteroid(self, player, player_health, sw):
+        if player.rect.colliderect(self.rect):
             # reset asteroid position (right side of screen, random y)
             self.rect.x = sw
             self.rect.y = random.randint(0, 750)
@@ -172,7 +180,7 @@ class Asteroid(pygame.sprite.Sprite):
 
 """Scrolling background for boss fight"""          
 class Infinite_Background:
-    def __init__(self, sw, sh, bg_path):
+    def __init__(self, sw, bg_path):
         # load background
         self.bg = pygame.image.load(bg_path).convert()
         self.bg_width  = self.bg.get_width()
