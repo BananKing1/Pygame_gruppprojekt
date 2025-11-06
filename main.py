@@ -62,18 +62,18 @@ while run:
 			print('EXIT')
 			run = False
 	else:
+		if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+			run =False
+		
 		for e in pygame.event.get():
 			if e.type == pygame.QUIT:
-				rung = False
+				run = False
 			elif e.type == pygame.KEYDOWN:
 			# Tryck ESC för att avsluta spelet
 				if e.key == pygame.K_ESCAPE:
 					run = False
 				elif e.key == pygame.K_SPACE:
 					main_character.shoot()
-
-		if pygame.key.get_pressed()[pygame.K_ESCAPE]:
-			run =False
 
 		screen.blit(main_character.image, main_character.rect)
 		main_character.handle_keys(keys, SCREEN_WIDTH, SCREEN_HEIGHT)
