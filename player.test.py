@@ -1,6 +1,6 @@
 import pygame, sys
 from boss import Boss, Beam, Infinite_Background
-from player import Player
+from main_character import Player
 
 Color_text = (220, 70, 70)
 FPS = 60
