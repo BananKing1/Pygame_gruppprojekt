@@ -12,11 +12,12 @@ class Boss(pygame.sprite.Sprite):
         original_sprite = pygame.image.load("sprites/shipYellow_manned.png").convert_alpha()
 
         # scale sprite
-        scale = 2  
+        scale = 2 
+        self.scale = scale # saving for boss_dies
         new_width = original_sprite.get_width() * scale
-        new_height = original_sprite.get_height() * scale
-        self.image = pygame.transform.scale(original_sprite, (new_width, new_height))
-        
+        self.new_height = original_sprite.get_height() * scale # save for boss_dies()
+        self.image = pygame.transform.scale(original_sprite, (new_width, self.new_height))
+
         # create hit box
         self.rect = self.image.get_rect()
        
@@ -26,7 +27,7 @@ class Boss(pygame.sprite.Sprite):
 
         # Set start position (before moving into frame)
         self.rect.x = (sw-new_width)/2
-        self.rect.y = 0-new_height
+        self.rect.y = 0-self.new_height
 
         # Save boss health
         self.health = boss_health
@@ -50,16 +51,33 @@ class Boss(pygame.sprite.Sprite):
         else:
             self.rect.y += random.choice([-1, 1])
 
+    def boss_dies(self):
+        # load dead sprite for boss
+        dead_sprite = pygame.image.load("sprites/alienYellow_hurt.png").convert_alpha()
+
+        # scale sprite
+        scale = self.scale 
+        new_width = dead_sprite.get_width() * scale
+        new_height = dead_sprite.get_height() * scale # save for boss_dies()
+        self.image = pygame.transform.scale(dead_sprite, (new_width, new_height))
+
+        if self.rect.y > 0-self.new_height:
+            self.rect.y -= random.choice([1, 3, 5])
+            self.rect.x -= random.choice([-1, 1])
+
+
     # boss health and death
     def take_damage(self, bullets):
         # check for collision between boss and player bullet
         if pygame.sprite.spritecollide(self, bullets, True):
             self.health -= 1
-            print("Boss health:", self.health)
+            print("Boss health:", self.health) 
         if self.health <= 0:
             print("You win, yippie!")
 
         return self.health
+
+        
 
 
 """Boss BEAM XD"""
@@ -178,6 +196,7 @@ class Asteroid(pygame.sprite.Sprite):
         return player_health # return new health
 
 
+
 """Scrolling background for boss fight"""          
 class Infinite_Background:
     def __init__(self, sw, bg_path):
@@ -200,4 +219,5 @@ class Infinite_Background:
         # Update scroll
         self.scroll -= scroll_speed
         if abs(self.scroll) >= self.bg_width:
-            self.scroll = 0     
+            self.scroll = 0 
+    
