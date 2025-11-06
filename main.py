@@ -56,6 +56,8 @@ while run:
 		exit_button.remove()
 		print('START')
 
+		screen.blit(main_character.image, main_character.rect)
+
 
 	if exit_button.draw(screen):
 		print('EXIT')
@@ -71,11 +73,12 @@ while run:
 		run =False
 
 	main_character.handle_keys(keys, SCREEN_WIDTH, SCREEN_HEIGHT)
+	screen.blit(main_character.image, main_character.rect)
 	main_character.update()
 	main_character_bullet.update()
 
-	screen.blit(main_character.image, main_character.rect)
-	#main_character_bullet.draw(screen)
+	
+	main_character_bullet.draw(screen)
 
 	pygame.display.update()
 
