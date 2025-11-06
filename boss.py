@@ -3,165 +3,188 @@ import random
 import math
 
 
-"""Big bad boss actions XD"""
+"""Big bad boss actions >:D"""
 class Boss(pygame.sprite.Sprite):
-    def __init__(self, x, y): # x and y are screen width and height
-        super().__init__()
-        original_img = pygame.image.load("sprites/shipYellow_manned.png").convert_alpha()
+    # x and y are screen width and height
+    def __init__(self, x, y, boss_health): 
+        # load og sprite
+        original_sprite = pygame.image.load("sprites/shipYellow_manned.png").convert_alpha()
 
-        # Scale sprite
-        scale_factor = 2  
-        new_width = original_img.get_width() * scale_factor
-        new_height = original_img.get_height() * scale_factor
+        # scale sprite
+        scale = 2  
+        new_width = original_sprite.get_width() * scale
+        new_height = original_sprite.get_height() * scale
+        self.image = pygame.transform.scale(original_sprite, (new_width, new_height))
         
-        self.image = pygame.transform.scale(original_img, (new_width, new_height))
-        # Create rect
+        # create hit box
         self.rect = self.image.get_rect()
        
-        # Save center position for wiggle()
-        self.center_x = x - 300
-        self.center_y = y - 500
+        # save desired position for shake()
+        self.pos_x = (x-new_width)/2-100
+        self.pos_y = y/9
 
-        # Set initial position
-        self.rect.x = x
-        self.rect.y = self.center_y
+        # Set start position (before moving into frame)
+        self.rect.x = (x-new_width)/2
+        self.rect.y = 0-new_height
 
-        # Boss health
-        self.health = 10  
+        # Save boss health
+        self.health = boss_health
 
-
-    def wiggle(self):
-        # Horizontal wiggle and moving into frame
-        if self.rect.x < self.center_x - 100:
+    # for boss shaking and staying in frame
+    def shake(self):
+        # shake horiziontally
+        if self.rect.x < self.pos_x + 100:
             self.rect.x += 1
-        elif self.rect.x > self.center_x :
-            self.rect.x -= 5
+        elif self.rect.x > self.pos_x-100 : # boss moves into frame
+            self.rect.x -= 1
         else:
             self.rect.x += random.choice([-1, 1])
 
-        # Vertical wiggle
-        if self.rect.y < self.center_y - 100:
-            self.rect.y += 1
-        elif self.rect.y > self.center_y + 100:
+        # shake vertically
+        #boss move into frame (from top)
+        if self.rect.y < self.pos_y:
+            self.rect.y += 5
+        elif self.rect.y > self.pos_y +50:
             self.rect.y -= 1
         else:
             self.rect.y += random.choice([-1, 1])
 
-    # Handle boss taking damage
-    def take_damage(self, amount):
-        self.health -= amount
-        print("Boss Health:", self.health)
+    # boss health and death
+    def take_damage(self):
+        self.health -= 1
+        print("Boss health:", self.health)
         if self.health <= 0:
-            print("Boss defeated!")
+            print("You win, yippie!")
 
 
-"""Boss beam actions XD"""
-class Beam(Boss):
-    def __init__(self, x, y):
-        super().__init__(x, y)  # pass x, y to Boss
-
+"""Boss BEAM XD"""
+class Beam(pygame.sprite.Sprite):
+    def __init__(self, beam_speed, beam_damage, boss):
+        # load og sprite
         original_img = pygame.image.load("sprites/laserYellow_burst.png").convert_alpha()
 
-        scale_factor = 1/2
-        new_width = original_img.get_width() * scale_factor
-        new_height = original_img.get_height() * scale_factor
-
+        # scale sprite
+        scale = 1/2
+        new_width = original_img.get_width() * scale
+        new_height = original_img.get_height() * scale
         self.image = pygame.transform.scale(original_img, (new_width, new_height))
-        self.rect = self.image.get_rect(center=(x, y))
+        
+        # create hitbox
+        self.rect = self.image.get_rect()
 
-        self.speed = 15
+        self.rect.x = boss.rect.center[0]
+        self.rect.y = boss.rect.center[1]
+
+        # save beam_speed for shoot_beam()
+        self.beam_speed = beam_speed
+        self.beam_damage = beam_damage
+
+    # shoot beam to player, beam continues to chase player
+    def shoot_beam(self, player): 
+        # find player and beam center coordinates
+        player_center = player.center 
+        beam_center = self.rect.center 
+
+        # if the beam is to the left or right of the player, move towards the player
+        if player_center[0] < beam_center[0]:
+            self.rect.x -= self.beam_speed
+        elif player_center[0] > beam_center[0]:
+            self.rect.x += self.beam_speed
+
+        # if the beam is to the top or bottom of the player, move towards the player
+        if player_center[1]  < beam_center[1]:
+            self.rect.y -= self.beam_speed
+        elif player_center[1] > beam_center[1]:
+            self.rect.y += self.beam_speed
     
-    def move_beam(self, player, boss):
-        player_center = player.center  # pygame.Rect.center
-        boss_center = boss.rect.center  # Boss rect
+    # check collision between beam and player
+    def beam_hit_player(self, player, player_health, boss):
+        # find boss center coordinates
+        boss_center  = boss.rect.center
 
-        dx = player_center[0] - boss_center[0]
-        dy = player_center[1] - boss_center[1]
-
-        magnitude = (dx ** 2 + dy ** 2) ** 0.5
-
-        if magnitude != 0:
-            self.velocity = [dx / magnitude * self.speed, dy / magnitude * self.speed]
-        else:
-            self.velocity = [0, 0]
-
-        self.rect.x += self.velocity[0]
-        self.rect.y += self.velocity[1]
-    
-    def beam_hit_player(self, player, boss, health):
-        # Check collision between BEAM and PLAYER
+        # Check collision between beam and player
         if self.rect.colliderect(player):
-            health -= 1
-            print("Player health:", health)
 
-            # Reset beam back to boss's position
-            self.rect.center = boss.rect.center  
+            # player takes damage
+            player_health -= 1
+            print("Player health:", player_health)
 
-        return health
-
-
-"""Asteroid actions XD"""
-class Asteroid(pygame.sprite.Sprite):
-    def __init__(self, x, y, scale_factor):
-        super().__init__()
-        original_img = pygame.image.load("sprites/spinner.png").convert_alpha()
-                
-        # Scale sprite
-        self.scale_factor = scale_factor
-        new_width = original_img.get_width() * scale_factor
-        new_height = original_img.get_height() * scale_factor
-
-        # Save width for moving asteroid
-        self.width = new_width
-
-        self.image = pygame.transform.scale(original_img, (new_width, new_height))
-        self.rect = self.image.get_rect(center=(x, y))
-
-    def move_asteroid(self, speed, sw, sh):
-        self.rect.x -= speed
-        if self.rect.x < -self.width:
-            self.rect.x = sw+100
-            self.rect.y = random.randint(10, sh - self.width)
-
-
-    # Player_score handling
-    def bullet_hit_asteroid(self, bullets, asteroid, sw, sh, score):
-        for bullet in bullets[:]:
-            if bullet['rect'].colliderect(asteroid):
-                bullets.remove(bullet)
-                asteroid.x = sw
-                asteroid.y = random.randint(0, sh)
-
-                score += 100
-                print("Score:", score)
-        return score
+            # Reset beam to boss center
+            self.rect.center = boss_center  
+        
+        # return new player health
+        return player_health
+    
+    
+    # reset beam position (middle of boss) if it goes off screen
+    def beam_reset(self, sw, sh, boss):
+        # for the y-axis
+        if self.rect.y < 0 or self.rect.y > sh:
+            self.rect.center = boss.rect.center
+        # for the x-axis
+        if self.rect.x < 0 or self.rect.x > sw:
+            self.rect.center = boss.rect.center
     
 
-    # Player_health handling
-    def collided_asteroid(self, object1, object2, health, sw):
-        if object1.colliderect(object2):
-            # Move object2 to a new position
-            object2.x = sw
-            object2.y = random.randint(0, 750)
-            health -= 1  # Decrease health on hit
-            print("Plaer health:", health)
-        return health
+
+"""Asteroid woohoo XD"""
+class Asteroid(pygame.sprite.Sprite):
+    # attributes: sw (screen width), sh (screen height)
+    def __init__(self, sw, sh, scale, asteroid_damage):
+        # load og sprite
+        original_sprite = pygame.image.load("sprites/spinner.png").convert_alpha()
+                
+        # scale sprite and save new width and height for throw_asteroid()
+        self.new_width =  original_sprite.get_width() * scale
+        self.new_height =  original_sprite.get_height() * scale
+        self.image = pygame.transform.scale( original_sprite, (self.new_width,  self.new_height))
+        
+        # create hitbox
+        self.rect = self.image.get_rect()
+
+        # Set start position (right side of screen, random y)
+        self.rect.x = sw
+        self.rect.y = random.randint(10, sh - self.new_width)
+
+        # Save asteroid damage (for collided_asteroid())
+        self.asteroid_damage = asteroid_damage
+
+    # reset to x=0 once asteroid has reached left side of screen
+    def throw_asteroid(self, speed, sw):
+        if self.rect.x > 0-self.new_width:
+            self.rect.x -= speed
+        else:
+            self.rect.x = sw + self.new_width
+            self.rect.y = random.randint(0, 750)
+
+    # Player collide with asteroid
+    def collided_asteroid(self, object1, asteroid, player_health, sw):
+        if object1.colliderect(asteroid):
+            # reset asteroid position (right side of screen, random y)
+            self.rect.x = sw
+            self.rect.y = random.randint(0, 750)
+            
+            # Decrease health on hit
+            player_health -= self.asteroid_damage  
+            print("Player health:", player_health)
+        return player_health # return new health
 
 
 """Scrolling background for boss fight"""          
 class Infinite_Background:
-    def __init__(self, screen_width, screen_height, bg_path):
+    def __init__(self, sw, sh, bg_path):
+        # load background
         self.bg = pygame.image.load(bg_path).convert()
         self.bg_width  = self.bg.get_width()
-        self.bg_height = self.bg.get_height()
 
         self.scroll = 0
-        self.tiles = math.ceil(screen_width / self.bg_width) + 1
+        # the numbers of pictures ti fill the screen
+        self.tiles = math.ceil(sw / self.bg_width) + 1
         
-        self.screen_width = screen_width
-        self.screen_height = screen_height
+        # save screen width and height for draw_background()
+        self.screen_width = sw
 
-    def draw(self, screen, scroll_speed):
+    def draw_background(self,screen, scroll_speed):
         # Draw scrolling background
         for i in range(self.tiles):
             screen.blit(self.bg, (i * self.bg_width + self.scroll, 0))
@@ -169,4 +192,4 @@ class Infinite_Background:
         # Update scroll
         self.scroll -= scroll_speed
         if abs(self.scroll) >= self.bg_width:
-            self.scroll = 0
+            self.scroll = 0     
