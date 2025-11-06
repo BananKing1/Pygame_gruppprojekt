@@ -44,6 +44,11 @@ while run:
 		#quit game
 		if event.type == pygame.QUIT:
 			run = False
+		elif event.type == pygame.KEYDOWN:
+			if event.key == pygame.K_ESCAPE:
+				run = False
+			elif active and event.key == pygame.K_SPACE:
+				main_character.shoot()
 	
 	screen.fill((0,0,0))
 
@@ -54,28 +59,11 @@ while run:
 		if start_button.draw(screen):
 			start_button.remove()
 			exit_button.remove()
-			print('START')
-			
 			active = True
 
 		if exit_button.draw(screen):
-			print('EXIT')
 			run = False
 	else:
-		for e in pygame.event.get():
-			if e.type == pygame.QUIT:
-				rung = False
-			elif e.type == pygame.KEYDOWN:
-			# Tryck ESC för att avsluta spelet
-				if e.key == pygame.K_ESCAPE:
-					run = False
-				elif e.key == pygame.K_SPACE:
-					main_character.shoot()
-
-		if pygame.key.get_pressed()[pygame.K_ESCAPE]:
-			run =False
-
-		screen.blit(main_character.image, main_character.rect)
 		main_character.handle_keys(keys, SCREEN_WIDTH, SCREEN_HEIGHT)
 		
 		main_character.update()
