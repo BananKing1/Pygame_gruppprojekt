@@ -5,7 +5,7 @@ import math
 
 """Big bad boss actions >:D"""
 class Boss(pygame.sprite.Sprite):
-    # x and y are screen width and height
+    # sw: screen width, sh: screen height
     def __init__(self, sw, sh, boss_health): 
         super().__init__()
         # load og sprite
@@ -15,7 +15,9 @@ class Boss(pygame.sprite.Sprite):
         scale = 2 
         self.scale = scale # saving for boss_dies
         new_width = original_sprite.get_width() * scale
-        self.new_height = original_sprite.get_height() * scale # save for boss_dies()
+        self.new_height = original_sprite.get_height() * scale # save for new sprite size for dead boss (boss_dies())
+
+        # set sprite
         self.image = pygame.transform.scale(original_sprite, (new_width, self.new_height))
 
         # create hit box
@@ -59,8 +61,11 @@ class Boss(pygame.sprite.Sprite):
         scale = self.scale 
         new_width = dead_sprite.get_width() * scale
         new_height = dead_sprite.get_height() * scale # save for boss_dies()
+        
+        # set sprite
         self.image = pygame.transform.scale(dead_sprite, (new_width, new_height))
 
+        # move the boss up out the screen while shaking
         if self.rect.y > 0-self.new_height:
             self.rect.y -= random.choice([1, 3, 5])
             self.rect.x -= random.choice([-1, 1])
@@ -72,9 +77,12 @@ class Boss(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, bullets, True):
             self.health -= 1
             print("Boss health:", self.health) 
+        
+        # you win
         if self.health <= 0:
             print("You win, yippie!")
 
+        # return boss health
         return self.health
 
         
@@ -82,7 +90,7 @@ class Boss(pygame.sprite.Sprite):
 
 """Boss BEAM XD"""
 class Beam(pygame.sprite.Sprite):
-    def __init__(self, beam_speed, beam_damage, boss):
+    def __init__(self, beam_speed, beam_damage, boss): # boss for boss center position
         super().__init__()
 
         # load og sprite

@@ -107,7 +107,7 @@ while run:
                 player_health = asteroid.collided_asteroid(main_character, player_health, SCREEN_WIDTH)
                 player_health = small_asteroid.collided_asteroid(main_character, player_health, SCREEN_WIDTH)
                 player_health = small_asteroid_2.collided_asteroid(main_character, player_health, SCREEN_WIDTH)
-            else:
+            else: # boss is dead
                 boss_beam.remove()
                 boss_enemy.boss_dies()
 
