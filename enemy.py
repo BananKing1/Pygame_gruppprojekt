@@ -56,6 +56,7 @@ enemy_bullet_Y = enemyA_Y + 32
 dx0= (player_X + 32) - enemy_bullet_X
 dy0= (player_Y + 32) - enemy_bullet_Y
 distance0 = math.hypot (dx0, dy0) or 1
+#kontroll bullet's speed
 enemy_bullet_dx = (dx0 / distance0) * enemy_bullet_speed
 enemy_bullet_dy = (dy0 / distance0) * enemy_bullet_speed
 
@@ -190,7 +191,7 @@ while running:
         hit_any = False
         kept = []
         for b in enemy_bullets:
-            if iscollision(p_cx, p_cy, enemy_bullet_X, enemy_bullet_Y, thresh=30):
+            if iscollision(p_cx, p_cy, b["x"], b["y"], thresh=30):
                 hit_any = True
 
             else:
@@ -215,11 +216,11 @@ while running:
 
     #player's bullet
     if player_bullet_state == "fire":
-        screen.blit(bulletImg, (player_bullet_X - 8, player_bullet_Y - 8))
+        screen.blit(bulletImg, (player_bullet_X - 5, player_bullet_Y - 5))
 
     #enemyA's bullet
     for b in enemy_bullets:
-        screen.blit(bulletImg, (b["x"] - 8, b["y"] - 8))
+        screen.blit(bulletImg, (b["x"] - 5, b["y"] - 5))
                         
     pygame.display.update()
 
