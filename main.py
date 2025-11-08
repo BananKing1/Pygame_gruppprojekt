@@ -229,7 +229,7 @@ while run:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         run = False
-                        paused = False
+                        paused = False        
                 
 
         pygame.display.flip()
