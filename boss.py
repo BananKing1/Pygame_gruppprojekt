@@ -81,10 +81,6 @@ class Boss(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, bullets, True):
             self.health -= 1
             print("Boss health:", self.health) 
-        
-        # you win
-        if self.health <= 0:
-            print("You win, yippie!")
 
         # return boss health
         return self.health
