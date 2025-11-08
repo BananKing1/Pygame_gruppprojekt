@@ -64,6 +64,7 @@ clock = pygame.time.Clock()
 tick_speed = 60
 
 active = False
+paused = False
 
 #load image
 background = Infinite_Background(SCREEN_WIDTH, "backgrounds/boss_bg_img.png")
@@ -217,15 +218,18 @@ while run:
         """ Player WINS!!! """
         # edited Zahra's code
         while paused:
-            for event in pygame.event.get():
-                font = pygame.font.SysFont(None, 48)
-                msg = font.render("You win!!!", True, (255, 255, 0))
-                display_score = font.render(f"Score: {score}", True, (255, 255, 0))
-                screen.blit(msg, (SCREEN_WIDTH//2 - msg.get_width()//2, SCREEN_HEIGHT//2 - msg.get_height()//2-25))
-                screen.blit(display_score, (SCREEN_WIDTH//2 - display_score.get_width()//2, SCREEN_HEIGHT//2 - display_score.get_height()//2+25))
+            font = pygame.font.SysFont(None, 48)
+            msg = font.render("You win!!!", True, (255, 255, 0))
+            display_score = font.render(f"Score: {score}", True, (255, 255, 0))
+            screen.blit(msg, (SCREEN_WIDTH//2 - msg.get_width()//2, SCREEN_HEIGHT//2 - msg.get_height()//2-25))
+            screen.blit(display_score, (SCREEN_WIDTH//2 - display_score.get_width()//2, SCREEN_HEIGHT//2 - display_score.get_height()//2+25))
+            
+            pygame.display.flip()
 
-                if event.key == pygame.K_ESCAPE:
-                    run = False
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        run = False
                 
 
         pygame.display.flip()
