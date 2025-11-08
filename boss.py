@@ -69,6 +69,10 @@ class Boss(pygame.sprite.Sprite):
         if self.rect.y > 0-self.new_height:
             self.rect.y -= random.choice([1, 3, 5])
             self.rect.x -= random.choice([-1, 1])
+            return False
+
+        if self.rect.y < 0-self.new_height:
+            return True
 
 
     # boss health and death
@@ -139,7 +143,7 @@ class Beam(pygame.sprite.Sprite):
         if player.rect.colliderect(self.rect):
 
             # player takes damage
-            player_health -= 1
+            player_health = max(0, player_health - 1)
             print("Player health:", player_health)
 
             # Reset beam to boss center

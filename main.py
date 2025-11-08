@@ -24,14 +24,11 @@ exit_img = pygame.image.load('sprites/exit_btn.png').convert_alpha()
 
 button_y= SCREEN_HEIGHT/2
 font=pygame.font.Font(None, 40)
-og_player_health = 3
-og_enemy_health = 5
-og_enemy_health1 = 3
 
 enemies_active = None
-player_health = og_player_health
-enemy_health = og_enemy_health
-enemy_health1 = og_enemy_health1
+player_health = 3
+enemy_health = 5
+enemy_health1 = 3
 
 
 score=0
@@ -45,6 +42,7 @@ enemy_a = EnemyA(SCREEN_WIDTH, SCREEN_HEIGHT, start_x=100, start_y=120, speed=5,
 enemy_b = EnemyB(SCREEN_WIDTH, SCREEN_HEIGHT, start_x=SCREEN_WIDTH-200, start_y=120, health=5, fall_speed=1.2, follow_speed=3)
 main_character_bullet = Bullet(main_character.rect.centerx, main_character.rect.top, -10)
 player_health = main_character.lives
+player_health_boss = 5
 
 
 
@@ -63,6 +61,7 @@ asteroid_speed = 9
 
 
 clock = pygame.time.Clock()
+tick_speed = 60
 
 active = False
 
@@ -72,7 +71,7 @@ background = Infinite_Background(SCREEN_WIDTH, "backgrounds/boss_bg_img.png")
 #game loop
 run = True
 while run:
-    clock.tick(60) #tick speed
+    clock.tick(tick_speed) #tick speed
     keys = pygame.key.get_pressed()
 
     #event handler
@@ -90,10 +89,12 @@ while run:
     
 
     # Draw scrolling background
-    background.draw_background(screen, scroll_speed=5)
+    background.draw_background(screen, 5)
 
     if not active:
         if start_button.draw(screen):
+            start_button.remove()
+            exit_button.remove()
             active = True
 
         if exit_button.draw(screen):
@@ -148,17 +149,19 @@ while run:
             player_health = main_character.lives
             enemy_health = max(0, enemy_a.health)
             enemy_health1 = max(0, enemy_b.health)
-
+            
             if player_health == 0:
                 print("You lose :(")
-                player_health = og_player_health
-                enemy_health = og_enemy_health
-                enemy_health1 = og_enemy_health1
-
-                enemies_active = None
                 
                 active = False
             
+            # handle player score, add 25 per enemy per frame
+            if enemy_health == 0:
+                score += 25
+            if enemy_health1 == 0:
+                score += 25
+
+
             # spawn boss
             if enemy_health == 0 and enemy_health1 == 0:
                 enemies_active = False
@@ -168,6 +171,9 @@ while run:
 
         """ Boss FIGHT!!! """
         if boss_active == True:
+            score += 50
+
+
             # Show boss health (Nasra's part)
             text_boss_health=font.render(f"Enemy 2: {boss_health}", True, (255,255,255))
             screen.blit(text_boss_health,(SCREEN_WIDTH-200,0))
@@ -191,19 +197,36 @@ while run:
 
                 # Handle boss, player health and collision
                 boss_health = boss_enemy.take_damage(main_character.bullets)
-                player_health = boss_beam.beam_hit_player(main_character, player_health, boss_enemy)
-                player_health = asteroid.collided_asteroid(main_character, player_health, SCREEN_WIDTH)
-                player_health = small_asteroid.collided_asteroid(main_character, player_health, SCREEN_WIDTH)
-                player_health = small_asteroid_2.collided_asteroid(main_character, player_health, SCREEN_WIDTH)
+                main_character.lives = boss_beam.beam_hit_player(main_character, main_character.lives, boss_enemy)
+                main_character.lives = asteroid.collided_asteroid(main_character, main_character.lives, SCREEN_WIDTH)
+                main_character.lives = small_asteroid.collided_asteroid(main_character, main_character.lives, SCREEN_WIDTH)
+                main_character.lives = small_asteroid_2.collided_asteroid(main_character, main_character.lives, SCREEN_WIDTH)
+                player_health = main_character.lives
+
+                if player_health == 0:
+                    print("You lose :(")
+                    
+                    active = False
+
             else: # boss is dead
                 boss_beam.remove()
-                boss_enemy.boss_dies()
-                boss_active = False
+                paused = boss_enemy.boss_dies()
+
+
 
         """ Player WINS!!! """
-        if boss_health == 0:
-            pass
-        
+        # edited Zahra's code
+        while paused:
+            for event in pygame.event.get():
+                font = pygame.font.SysFont(None, 48)
+                msg = font.render("You win!!!", True, (255, 255, 0))
+                display_score = font.render(f"Score: {score}", True, (255, 255, 0))
+                screen.blit(msg, (SCREEN_WIDTH//2 - msg.get_width()//2, SCREEN_HEIGHT//2 - msg.get_height()//2-25))
+                screen.blit(display_score, (SCREEN_WIDTH//2 - display_score.get_width()//2, SCREEN_HEIGHT//2 - display_score.get_height()//2+25))
+
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+                
 
         pygame.display.flip()
     pygame.display.update()

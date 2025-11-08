@@ -29,7 +29,7 @@ player_health = main_character.lives
 main_character_bullet = Bullet(main_character.rect.centerx, main_character.rect.top, -10)
 
 # Make Boss & Asteroid objects
-boss_active = False
+boss_active = True
 boss_health = 10
 boss_enemy = Boss(SCREEN_WIDTH, SCREEN_HEIGHT, boss_health)
 boss_beam = Beam(5, 2, boss_enemy)
@@ -44,7 +44,7 @@ clock = pygame.time.Clock()
 active = False
 
 # Load background image
-background = Infinite_Background(SCREEN_WIDTH, SCREEN_HEIGHT, "backgrounds/boss_bg_img.png")
+background = Infinite_Background(SCREEN_WIDTH, "backgrounds/boss_bg_img.png")
 
 # Game loop
 run = True
