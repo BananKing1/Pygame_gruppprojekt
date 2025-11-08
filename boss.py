@@ -207,19 +207,13 @@ class Asteroid(pygame.sprite.Sprite):
 
 """Scrolling background for boss fight"""          
 class Infinite_Background:
-    def __init__(self, sw, sh, bg_path):
+    def __init__(self, sw, bg_path):
         # load background
-        original_bg = pygame.image.load(bg_path).convert()
+        self.bg = pygame.image.load(bg_path).convert()
+        
+        self.bg_width  = self.bg.get_width()
+        self.bg_height  = self.bg.get_height()
 
-        # get width & height
-        bg_height  = self.bg.get_height()
-        
-        # scale background to fit all monitors
-        scale = sh/bg_height
-        self.bg_width = original_bg.get_width() * scale
-        new_height = original_bg.get_height() * scale
-        self.bg = pygame.transform.scale(original_bg, (new_width, new_height))
-        
         self.scroll = 0
         # the numbers of pictures ti fill the screen
         self.tiles = math.ceil(sw / self.bg_width) + 2
