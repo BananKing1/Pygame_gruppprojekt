@@ -4,9 +4,6 @@ from boss import Boss, Beam, Asteroid, Infinite_Background
 from main_character import Player, Bullet
 from enemies import EnemyA, EnemyB 
 
-def reset_game():
-    pass
-
 
 
 pygame.init()
@@ -30,7 +27,6 @@ player_health = 3
 enemy_health = 5
 enemy_health1 = 3
 
-
 score=0
 
 #create button instances
@@ -44,9 +40,7 @@ main_character_bullet = Bullet(main_character.rect.centerx, main_character.rect.
 player_health = main_character.lives
 player_health_boss = 5
 
-
-
-# Make Boss & Asteroid objects
+# Make Boss & Asteroid objects (Natalie's part)
 boss_active = False
 boss_health = 10
 boss_enemy = Boss(SCREEN_WIDTH, SCREEN_HEIGHT, boss_health)
@@ -54,10 +48,8 @@ boss_beam = Beam(5, 2, boss_enemy)
 asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 2, 2)
 small_asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1, 1)
 small_asteroid_2 = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1, 1)
-
 # Asteroid speed, because asteroids have different speeds
 asteroid_speed = 9
-
 
 
 clock = pygame.time.Clock()
@@ -113,18 +105,21 @@ while run:
         main_character.update()
         main_character_bullet.update()
 
+        main_character.bullets.draw(screen)
+        screen.blit(main_character.image, main_character.rect)
+
         # spawn enemies
         enemies_active = True
 
 
 
         """ Enemies FIGHT!!! """
-        if enemies_active == True:
+        if enemies_active == True and boss_active == False:
             # enemies health (Nasra's part)
             text_enemy_health=font.render(f"Enemy 1: {enemy_health}", True, (255,255,255))
             text_enemy_health1=font.render(f"Enemy 2: {enemy_health1}", True, (255,255,255))
-            screen.blit(text_enemy_health,(SCREEN_WIDTH-200,0))
-            screen.blit(text_enemy_health1, (SCREEN_WIDTH-200,50))
+            screen.blit(text_enemy_health,(SCREEN_WIDTH-100,0))
+            screen.blit(text_enemy_health1, (SCREEN_WIDTH-100,50))
             
             #enemies update (Zahra's part)
             enemy_a.update(main_character.rect)
@@ -140,9 +135,6 @@ while run:
                     bullet.kill()
                     main_character.lives = max(0,main_character.lives - 1)
 
-            main_character.bullets.draw(screen)
-            screen.blit(main_character.image, main_character.rect)
-
             # draw enemies
             enemy_a.draw(screen)
             enemy_b.draw(screen)
@@ -151,11 +143,13 @@ while run:
             enemy_health = max(0, enemy_a.health)
             enemy_health1 = max(0, enemy_b.health)
             
+
+            # stops the game when player dies
             if player_health == 0:
                 print("You lose :(")
-                
                 active = False
             
+
             # handle player score, add 25 per enemy per frame
             if enemy_health == 0:
                 score += 25
@@ -163,7 +157,7 @@ while run:
                 score += 25
 
 
-            # spawn boss
+            # spawn boss when both enemies are dead
             if enemy_health == 0 and enemy_health1 == 0:
                 enemies_active = False
                 boss_active = True
@@ -172,14 +166,14 @@ while run:
 
         """ Boss FIGHT!!! """
         if boss_active == True:
+            # increase score per frame
             score += 50
 
-
             # Show boss health (Nasra's part)
-            text_boss_health=font.render(f"Enemy 2: {boss_health}", True, (255,255,255))
-            screen.blit(text_boss_health,(SCREEN_WIDTH-200,0))
+            text_boss_health=font.render(f"Boss: {boss_health}", True, (255,255,255))
+            screen.blit(text_boss_health,(SCREEN_WIDTH-100,0))
 
-            # Draw objects
+            # Draw objects (Natalie's part)
             screen.blit(boss_enemy.image, boss_enemy.rect)
             screen.blit(asteroid.image, asteroid.rect)
             screen.blit(small_asteroid.image, small_asteroid.rect)
@@ -190,6 +184,13 @@ while run:
             asteroid.throw_asteroid(asteroid_speed, SCREEN_WIDTH)
             small_asteroid.throw_asteroid(asteroid_speed + 1, SCREEN_WIDTH)
             small_asteroid_2.throw_asteroid(asteroid_speed + 2, SCREEN_WIDTH)
+
+
+            # stops the game when player dies
+            if player_health == 0:
+                print("You lose :(")
+                active = False
+
 
             # Move boss, beam, asteroids
             if boss_health > 0:
@@ -204,11 +205,6 @@ while run:
                 main_character.lives = small_asteroid_2.collided_asteroid(main_character, main_character.lives, SCREEN_WIDTH)
                 player_health = main_character.lives
 
-                if player_health == 0:
-                    print("You lose :(")
-                    
-                    active = False
-
             else: # boss is dead
                 boss_beam.remove()
                 paused = boss_enemy.boss_dies()
@@ -218,18 +214,22 @@ while run:
         """ Player WINS!!! """
         # edited Zahra's code
         while paused:
+            # display message and score
             font = pygame.font.SysFont(None, 48)
-            msg = font.render("You win!!!", True, (255, 255, 0))
+            msg = font.render("You win, yippie!!!", True, (255, 255, 0))
             display_score = font.render(f"Score: {score}", True, (255, 255, 0))
             screen.blit(msg, (SCREEN_WIDTH//2 - msg.get_width()//2, SCREEN_HEIGHT//2 - msg.get_height()//2-25))
             screen.blit(display_score, (SCREEN_WIDTH//2 - display_score.get_width()//2, SCREEN_HEIGHT//2 - display_score.get_height()//2+25))
             
+            # update screen before freezing
             pygame.display.flip()
 
+            # freeze the game until player press esc
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         run = False
+                        paused = False
                 
 
         pygame.display.flip()
