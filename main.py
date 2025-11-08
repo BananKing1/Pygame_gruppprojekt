@@ -142,13 +142,11 @@ while run:
             player_health = main_character.lives
             enemy_health = max(0, enemy_a.health)
             enemy_health1 = max(0, enemy_b.health)
-            
 
             # stops the game when player dies
             if player_health == 0:
                 print("You lose :(")
                 active = False
-            
 
             # handle player score, add 25 per enemy per frame
             if enemy_health == 0:
@@ -205,7 +203,8 @@ while run:
                 main_character.lives = small_asteroid_2.collided_asteroid(main_character, main_character.lives, SCREEN_WIDTH)
                 player_health = main_character.lives
 
-            else: # boss is dead
+            # boss is dead
+            else: 
                 boss_beam.remove()
                 paused = boss_enemy.boss_dies()
 
