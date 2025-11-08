@@ -4,6 +4,7 @@ import math
 from boss import Boss, Beam, Asteroid, Infinite_Background 
 from main_character import Player, Bullet
 
+
 pygame.init()
 #create display window
 info=pygame.display.Info()
