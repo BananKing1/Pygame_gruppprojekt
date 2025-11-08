@@ -1,8 +1,12 @@
 import pygame
 import button
-import math
 from boss import Boss, Beam, Asteroid, Infinite_Background 
 from main_character import Player, Bullet
+from enemies import EnemyA, EnemyB 
+
+def reset_game():
+    pass
+
 
 
 pygame.init()
@@ -20,68 +24,41 @@ exit_img = pygame.image.load('sprites/exit_btn.png').convert_alpha()
 
 button_y= SCREEN_HEIGHT/2
 font=pygame.font.Font(None, 40)
-player_health=3
-enemy_health=5
-enemy_health1=5
+og_player_health = 3
+og_enemy_health = 5
+og_enemy_health1 = 3
+
+enemies_active = None
+player_health = og_player_health
+enemy_health = og_enemy_health
+enemy_health1 = og_enemy_health1
+
+
 score=0
 
-now=pygame.time.get_ticks()
 #create button instances
 start_button = button.Button(SCREEN_WIDTH/2 +100, button_y, start_img)
 exit_button = button.Button(SCREEN_HEIGHT/2 -100, button_y, exit_img)
 
 main_character = Player(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 80, speed=20, margin=30)
+enemy_a = EnemyA(SCREEN_WIDTH, SCREEN_HEIGHT, start_x=100, start_y=120, speed=5, health=3, fire_every_ms=300, bullet_speed=6)
+enemy_b = EnemyB(SCREEN_WIDTH, SCREEN_HEIGHT, start_x=SCREEN_WIDTH-200, start_y=120, health=5, fall_speed=1.2, follow_speed=3)
 main_character_bullet = Bullet(main_character.rect.centerx, main_character.rect.top, -10)
 player_health = main_character.lives
-main_character.rect = main_character.image.get_rect()
 
-# EnemyA
-enemyAImg = pygame.image.load ("enemy1.png")
-enemyAImg = pygame.transform.scale(enemyAImg, (64, 64))
-enemyA_health = 3
-enemyA_X = 100
-enemyA_Y = 100
-enemyA_speed = 5
-enemyA_direction = +1
-#limited on the right side
-enemy_right_max = SCREEN_WIDTH - 64  
 
-#enemyB
-enemyBImg = pygame.image.load ("enemy2.png")
-enemyBImg = pygame.transform.scale(enemyBImg, (64, 64))
-enemyB_health = 5
-enemyB_X = SCREEN_WIDTH - 64
-enemyB_Y = 100
-enemyB_change = 0.8
 
-#following main_character
-enemyB_follow_speed = 2
-    
-#bullet 
-bulletImg = pygame.image.load("bullet.png")
-bullet = pygame.transform.scale(bulletImg, (10, 10))
+# Make Boss & Asteroid objects
+boss_active = False
+boss_health = 10
+boss_enemy = Boss(SCREEN_WIDTH, SCREEN_HEIGHT, boss_health)
+boss_beam = Beam(5, 2, boss_enemy)
+asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 2, 2)
+small_asteroid = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1, 1)
+small_asteroid_2 = Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT, 1, 1)
 
-enemy_bullets = []
-enemy_fire_every_ms = 300
-enemy_last_shot = 0
-enemy_bullet_speed = 4
-
-#bullet position
-enemy_bullet_X = enemyA_X + 32
-enemy_bullet_Y = enemyA_Y + 32
-
-#at the main_character center(first shot)
-dx0= (main_character.rect.x + 32) - enemy_bullet_X
-dy0= (main_character.rect.y + 32) - enemy_bullet_Y
-distance0 = math.hypot (dx0, dy0) or 1
-#kontroll bullet's speed
-enemy_bullet_dx = (dx0 / distance0) * enemy_bullet_speed
-enemy_bullet_dy = (dy0 / distance0) * enemy_bullet_speed
-
-#center to center collision
-def iscollision (x1, y1, x2, y2, thresh = 30):
-    distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-    return distance < thresh
+# Asteroid speed, because asteroids have different speeds
+asteroid_speed = 9
 
 
 
@@ -95,134 +72,141 @@ background = Infinite_Background(SCREEN_WIDTH, "backgrounds/boss_bg_img.png")
 #game loop
 run = True
 while run:
-	clock.tick(60) #tick speed
-	keys = pygame.key.get_pressed()
+    clock.tick(60) #tick speed
+    keys = pygame.key.get_pressed()
 
-	#event handler
-	for event in pygame.event.get():
-		#quit game
-		if event.type == pygame.QUIT:
-			run = False
-		elif event.type == pygame.KEYDOWN:
-			if event.key == pygame.K_ESCAPE:
-				run = False
-			elif active and event.key == pygame.K_SPACE:
-				main_character.shoot()
-	
-	screen.fill((0,0,0))
-	
+    #event handler
+    for event in pygame.event.get():
+        #quit game
+        if event.type == pygame.QUIT:
+            run = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                run = False
+            elif active and event.key == pygame.K_SPACE:
+                main_character.shoot()
+    
+    screen.fill((0,0,0))
+    
 
     # Draw scrolling background
-	background.draw_background(screen, scroll_speed=5)
+    background.draw_background(screen, scroll_speed=5)
 
-	if not active:
-		if start_button.draw(screen):
-			start_button.remove()
-			exit_button.remove()
-			active = True
+    if not active:
+        if start_button.draw(screen):
+            active = True
 
-		if exit_button.draw(screen):
-			run = False
-	else:
-		main_character.handle_keys(keys, SCREEN_WIDTH, SCREEN_HEIGHT)
-		
-		main_character.update()
-		main_character_bullet.update()
-		main_character.bullets.draw(screen)
-		screen.blit(main_character.image, main_character.rect)
-		text_score=font.render(f"Score:{score}",True, (255,255,255))
-		text_player_helath=font.render(f"Health:{player_health}",True, (255,255,255))
-		text_enemy_health=font.render(f"Enemy 1:{enemy_health}", True, (255,255,255))
-		text_enemy_health1=font.render(f"Enemy 2:{enemy_health1}", True, (255,255,255))
-		screen.blit(text_enemy_health,(SCREEN_WIDTH-100,0))
-		screen.blit(text_enemy_health1, (SCREEN_WIDTH-100,50))
-		screen.blit(text_player_helath, (0,50))
-		screen.blit(text_score, (0,0))
-		#pygame.display.flip()
-		# player_health = main_character.check_enemy_hits(enemy_bullets)
+        if exit_button.draw(screen):
+            run = False
+    else:
+        # player score and health (Nasra's part)
+        text_score=font.render(f"Score: {score}",True, (255,255,255))
+        text_player_helath=font.render(f"Health: {player_health}",True, (255,255,255))
+        screen.blit(text_player_helath, (0,50))
+        screen.blit(text_score, (0,0))
+        
+        # player mechanics (Sara's part)
+        main_character.handle_keys(keys, SCREEN_WIDTH, SCREEN_HEIGHT)
+        
+        main_character.update()
+        main_character_bullet.update()
 
-		#enemyA movement
-		if enemyA_health > 0:
-			enemyA_X = enemyA_X + (enemyA_speed * enemyA_direction)
-			if enemyA_X <= 0:
-					enemyA_X = 0
-					enemyA_direction = +1
-					enemyA_Y += 64
-			elif enemyA_X >= enemy_right_max:
-					enemyA_X = enemy_right_max
-					enemyA_direction = -1
-					enemyA_Y += 64
-
-		#enemyB movement
-		if enemyB_health > 0:
-			#always downward
-			enemyB_Y += enemyB_change
-
-			#closing in the main_character
-			target_x = main_character.rect.x  
-			center_x = enemyB_X + 32
-
-			if center_x < target_x:
-				enemyB_X += enemyB_follow_speed
-			elif center_x > target_x:
-				enemyB_X -= enemyB_follow_speed
-
-
-			if enemyB_Y + 64 >= main_character.rect.y:
-				game_over = True
-		
-			#enemyA bullet (always active)
-		if enemyA_health > 0:
-			
-			if now - enemy_last_shot >= enemy_fire_every_ms:
-				bx = enemyA_X + 32
-				by = enemyA_Y + 32
-				dx = (main_character.rect.x + 32) - bx
-				dy = (main_character.rect.y + 32) - by
-				dist = math.hypot(dx, dy) or 1
-				vx = (dx / dist) * enemy_bullet_speed
-				vy = (dy / dist) * enemy_bullet_speed
-				enemy_bullets.append({"x": bx, "y": by, "dx": vx, "dy": vy})
-				enemy_last_shot = now
-			
-			for b in enemy_bullets:
-				b["x"] += b["dx"]
-				b["y"] += b["dy"]
-
-		
-
-
-			#enemies's bullet hits the main_character's center
-			p_cx, p_cy = main_character.rect.x + 32, main_character.rect.y + 32
-			hit_any = False
-			kept = []
-			for b in enemy_bullets:
-				if iscollision(p_cx, p_cy, b["x"], b["y"], thresh=30):
-					hit_any = True
-					player_health -= 1
-
-				else:
-					if 0 <= b["x"] <= SCREEN_WIDTH and 0 <= b["y"] <= SCREEN_HEIGHT:
-						enemy_bullets.append(b)
-				
-			
-			enemy_bullets = kept
-			if hit_any:
-				game_over = True
-
-			#enemyA's bullet
-			for b in enemy_bullets:
-				screen.blit(bulletImg, (b["x"] - 5, b["y"] - 5))
-			
-			if enemyA_health > 0:
-				screen.blit(enemyAImg, (enemyA_X, enemyA_Y))
-			if enemyB_health > 0:
-				screen.blit(enemyBImg, (enemyB_X, enemyB_Y))
+        # spawn enemies
+        enemies_active = True
 
 
 
-	pygame.display.update()
-		
+        """ Enemies FIGHT!!! """
+        if enemies_active == True:
+            # enemies health (Nasra's part)
+            text_enemy_health=font.render(f"Enemy 1: {enemy_health}", True, (255,255,255))
+            text_enemy_health1=font.render(f"Enemy 2: {enemy_health1}", True, (255,255,255))
+            screen.blit(text_enemy_health,(SCREEN_WIDTH-200,0))
+            screen.blit(text_enemy_health1, (SCREEN_WIDTH-200,50))
+            
+            #enemies update (Zahra's part)
+            enemy_a.update(main_character.rect)
+            enemy_b.update(main_character.rect)
 
+            #collision(player's bullet to enemies)
+            enemy_a.check_player_hits(main_character)
+            enemy_b.check_player_hits(main_character)
+
+            #collision(enemyA's bullet to player)
+            for bullet in list(enemy_a.enemy_bullets):
+                if main_character.rect.colliderect(bullet.rect):
+                    bullet.kill()
+                    main_character.lives = max(0,main_character.lives - 1)
+
+            main_character.bullets.draw(screen)
+            screen.blit(main_character.image, main_character.rect)
+
+            # draw enemies
+            enemy_a.draw(screen)
+            enemy_b.draw(screen)
+
+            player_health = main_character.lives
+            enemy_health = max(0, enemy_a.health)
+            enemy_health1 = max(0, enemy_b.health)
+
+            if player_health == 0:
+                print("You lose :(")
+                player_health = og_player_health
+                enemy_health = og_enemy_health
+                enemy_health1 = og_enemy_health1
+
+                enemies_active = None
+                
+                active = False
+            
+            # spawn boss
+            if enemy_health == 0 and enemy_health1 == 0:
+                enemies_active = False
+                boss_active = True
+        
+
+
+        """ Boss FIGHT!!! """
+        if boss_active == True:
+            # Show boss health (Nasra's part)
+            text_boss_health=font.render(f"Enemy 2: {boss_health}", True, (255,255,255))
+            screen.blit(text_boss_health,(SCREEN_WIDTH-200,0))
+
+            # Draw objects
+            screen.blit(boss_enemy.image, boss_enemy.rect)
+            screen.blit(asteroid.image, asteroid.rect)
+            screen.blit(small_asteroid.image, small_asteroid.rect)
+            screen.blit(small_asteroid_2.image, small_asteroid_2.rect)
+
+            boss_beam.shoot_beam(main_character)
+            boss_beam.beam_reset(SCREEN_WIDTH, SCREEN_HEIGHT, boss_enemy)
+            asteroid.throw_asteroid(asteroid_speed, SCREEN_WIDTH)
+            small_asteroid.throw_asteroid(asteroid_speed + 1, SCREEN_WIDTH)
+            small_asteroid_2.throw_asteroid(asteroid_speed + 2, SCREEN_WIDTH)
+
+            # Move boss, beam, asteroids
+            if boss_health > 0:
+                boss_enemy.shake()
+                screen.blit(boss_beam.image, boss_beam.rect) # will "remove" beam when boss dies
+
+                # Handle boss, player health and collision
+                boss_health = boss_enemy.take_damage(main_character.bullets)
+                player_health = boss_beam.beam_hit_player(main_character, player_health, boss_enemy)
+                player_health = asteroid.collided_asteroid(main_character, player_health, SCREEN_WIDTH)
+                player_health = small_asteroid.collided_asteroid(main_character, player_health, SCREEN_WIDTH)
+                player_health = small_asteroid_2.collided_asteroid(main_character, player_health, SCREEN_WIDTH)
+            else: # boss is dead
+                boss_beam.remove()
+                boss_enemy.boss_dies()
+                boss_active = False
+
+        """ Player WINS!!! """
+        if boss_health == 0:
+            pass
+        
+
+        pygame.display.flip()
+    pygame.display.update()
 pygame.quit()
+
 
