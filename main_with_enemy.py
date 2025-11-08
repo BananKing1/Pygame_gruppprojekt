@@ -21,7 +21,7 @@ button_y= SCREEN_HEIGHT/2
 font=pygame.font.Font(None, 40)
 player_health=3
 enemy_health=5
-enemy_health1=5
+enemy_health1=3
 score=0
 
 #create button instances

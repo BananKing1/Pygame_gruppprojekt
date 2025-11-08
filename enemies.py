@@ -166,8 +166,7 @@ class EnemyB(pygame.sprite.Sprite):
         attack = len(hits)
         if attack > 0:
             self.health -= attack
-            if self.health <= 0:  
-                self.enemy_bullets.empty() 
+            if self.health <= 0:   
                 self.kill()
         return attack
     
@@ -256,7 +255,7 @@ if __name__ == '__main__':
         enemy_b.update(player_rect)
 
         # die player
-        if enemy_b.body_hit_player(player_rect):
+        if enemy_b.alive() and enemy_b.body_hit_player(player_rect):
             #Game Over
             screen.fill((30, 30, 30))
             font = pygame.font.SysFont(None, 48)
