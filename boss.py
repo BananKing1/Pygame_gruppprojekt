@@ -71,7 +71,7 @@ class Boss(pygame.sprite.Sprite):
             self.rect.x -= random.choice([-1, 1])
             return False
 
-        if self.rect.y < 0-self.new_height:
+        if self.rect.y <= 0-self.new_height:
             return True
 
 
