@@ -71,7 +71,7 @@ class Boss(pygame.sprite.Sprite):
             self.rect.x -= random.choice([-1, 1])
             return False
 
-        if self.rect.y < 0-self.new_height:
+        if self.rect.y <= 0-self.new_height:
             return True
 
 
@@ -81,10 +81,6 @@ class Boss(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, bullets, True):
             self.health -= 1
             print("Boss health:", self.health) 
-        
-        # you win
-        if self.health <= 0:
-            print("You win, yippie!")
 
         # return boss health
         return self.health
@@ -216,7 +212,6 @@ class Infinite_Background:
         self.bg = pygame.image.load(bg_path).convert()
         
         self.bg_width  = self.bg.get_width()
-        self.bg_height  = self.bg.get_height()
 
         self.scroll = 0
         # the numbers of pictures ti fill the screen
@@ -233,5 +228,4 @@ class Infinite_Background:
         # update scroll
         self.scroll -= scroll_speed
         if abs(self.scroll) >= self.bg_width:
-            self.scroll = 0 
-    
+            self.scroll = 0
