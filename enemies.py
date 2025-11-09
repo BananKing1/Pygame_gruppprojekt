@@ -1,110 +1,134 @@
-
 import pygame
 import math
 
-
 enemy_size = (64, 64)  
-             
-        
-#enemyA Bullet
+
+#bullet
 class EnemyBullet(pygame.sprite.Sprite):
-    
-    #bullet removes after leaving the screen
+    """bullet tas bort när går utanför skärmen"""
+
+    #screen_width (screen_w) / screen_height (screen_h) 
     def __init__(self, x, y, vx, vy, screen_w, screen_h):
         super().__init__()
+
+        #ladda bullet's bild
         img = pygame.image.load("bullet.png").convert_alpha()
+
+        #bullet storlek
         self.image = pygame.transform.scale(img, (12, 12))
+
+        #bullet position på skärm enligt bullet's center
         self.rect = self.image.get_rect(center=(x, y))
+
+        #bullet's hastighet på x_y_led på decimal
         self.vx = float(vx)
         self.vy = float(vy)
-        self.screen_w = int(screen_w)
-        self.screen_h = int(screen_h)
+
+        #skärm storlek (heltal)
+        self.screen_w = screen_w
+        self.screen_h = screen_h
 
     def update (self):
-        # bullet movment
+        # bullet's rörelse med sin hastighet
         self.rect.x += int(self.vx)
         self.rect.y += int(self.vy)
-        # delet if goes out
-        if (self.rect.right < 0 or self.rect.left > self.screen_w or
-            self.rect.bottom < 0 or self.rect.top > self.screen_h):
+
+        # tas bort bullet (när går ut från alla sidan av skärmen)
+        if (self.rect.right < 0 or self.rect.left > self.screen_w or self.rect.bottom < 0 or self.rect.top > self.screen_h):
             self.kill()
 
 
 #enemyA
 class EnemyA(pygame.sprite.Sprite):
     
-    #enemyA movment + shoot at the player
-    def __init__(self, screen_w, screen_h,
-                 start_x=100, start_y=100,
-                 speed=5, health=3,
-                 fire_every_ms=300, bullet_speed=4):
+    """när åker ut längs ner, kommer tillbaka uppifrån/ når till kanten, går ner en rad/ skjutar på main charakter """
+    def __init__(self, screen_w, screen_h, start_x=100, start_y=100, speed=5, health=3, fire_every_ms=300, bullet_speed=4):
         super().__init__()
         img = pygame.image.load("enemy1.png").convert_alpha()
         self.image = pygame.transform.scale(img, enemy_size)
+
+        #position på skärm
         self.rect = self.image.get_rect(topleft=(start_x, start_y))
 
         self.screen_w = int(screen_w)
         self.screen_h = int(screen_h)
 
-        # enemyA stats
+        #antal liv
         self.health = int(health)
         self.speed = int(speed)
-        #to the right
-        self.direction = +1                
+
+         #går åt höger
+        self.direction = +1     
+        #max högergräns som kan gå ( vänster gräns är 0)           
         self.right_max = self.screen_w - enemy_size[0]
 
-        # shooting
+        #en grupp av massor bullets
         self.enemy_bullets = pygame.sprite.Group()
+        #tid mellan skotten
         self.fire_every_ms = int(fire_every_ms)
         self.last_shot_ms = 0
         self.bullet_speed = float(bullet_speed)
-
+    
+    #rita enemy och bullet på skärmen så längre enemy lever
     def draw(self, surface):
         if self.health > 0:
+            #sätta bild på skärm
             surface.blit(self.image, self.rect)
         self.enemy_bullets.draw(surface)        
 
     def update(self, player_rect=None):
-        #bullet before enemy dies
+        #försvinner när livet slutas (enemy och bullet)
         if self.health <= 0:
-            self.enemy_bullets.update()
+            self.enemy_bullets.empty()
             self.kill()
             return
 
-        # movement in x_led
+        # hur röra sig på x_led
         self.rect.x += self.speed * self.direction
 
 
-        #move down ond row 
+        # vänder och går ner en rad när träffar kanten(höger och vänster) 
         if self.rect.x <= 0:
             self.rect.x = 0
+            #åt höger
             self.direction = +1
+            #går ner (en fiende storlek)
             self.rect.y += enemy_size[1]
         elif self.rect.x >= self.right_max:
+            #går inte mer max högergräns
             self.rect.x = self.right_max
+            #åt vänster
             self.direction = -1
             self.rect.y += enemy_size[1]
 
+        # när åker ut längs ner, kommer tillbaka uppifrån
         if self.rect.bottom >= self.screen_h:
             self.rect.y = -enemy_size[1]    
 
-        # shooting the player
+        #sjukas mot player( om plater finns)
         if player_rect is not None:
+
+            #nuvarande tid(för skott beräkning)
             now = pygame.time.get_ticks()
             if now - self.last_shot_ms >= self.fire_every_ms:
+                #enemy centere (bullets plats)
                 sx, sy = self.rect.center
+                #bullet's mål
                 tx, ty = player_rect.center
+                #avstånd mellan player och enemys bullet på (x,y)
                 dx, dy = tx - sx, ty - sy
                 dist = math.hypot(dx, dy) or 1.0
+                #att gå i riktning mot player med en hastighet
                 vx = (dx / dist) * self.bullet_speed
                 vy = (dy / dist) * self.bullet_speed
-                self.enemy_bullets.add(EnemyBullet(sx, sy, vx, vy, self.screen_w, self.screen_h))
-                #shoot new bullet                                   
+                #ny bullet med vx, vy hastighet
+                self.enemy_bullets.add(EnemyBullet(sx, sy, vx, vy, self.screen_w, self.screen_h))                                  
                 self.last_shot_ms = now
 
         self.enemy_bullets.update()
 
     def check_player_hits(self, player_sprite):
+        """varje bullet = en attack, player's bullet träffar enemyA """
         if self.health <= 0:
             return 0
         hits = pygame.sprite.spritecollide(self, player_sprite.bullets, dokill=True)
@@ -120,13 +144,12 @@ class EnemyA(pygame.sprite.Sprite):
 #enemyB
 class EnemyB(pygame.sprite.Sprite):
    
-   #enemyB movment
-    def __init__(self, screen_w, screen_h,
-                 start_x, start_y,
-                 health=5, fall_speed=0.8, follow_speed=2):
+    """följer spelare på x_led, när går ut längst ner från skärm, kommer tillbaka uppefrån """
+    def __init__(self, screen_w, screen_h, start_x, start_y, health=5, fall_speed=0.8, follow_speed=2):
         super().__init__()
         img = pygame.image.load("enemy2.png").convert_alpha()
         self.image = pygame.transform.scale(img, enemy_size)
+        #position på skärm
         self.rect = self.image.get_rect(topleft=(start_x, start_y))
 
         self.screen_w = int(screen_w)
@@ -140,20 +163,23 @@ class EnemyB(pygame.sprite.Sprite):
         if self.health > 0:
             surface.blit(self.image, self.rect)    
 
+    #enemy dör = stoppas uppdatering
     def update(self, player_rect=None):
         if self.health <= 0:
             self.kill()
             return
         
-        #move down
+        # faller ner
         self.rect.y += self.fall_speed
-
+        # tillbaka uppefrån
         if self.rect.top >= self.screen_h:
             self.rect.y = -enemy_size[1]
 
-        #follow player in x_led
+        # following player på x_led (om player finns)
         if player_rect is not None:
             target_x = player_rect.centerx
+
+            #om är på player's vänster sidan gåt till höger (x ökar) och tvärtom
             if self.rect.centerx < target_x:
                 self.rect.x += self.follow_speed
             elif self.rect.centerx > target_x:
@@ -162,6 +188,8 @@ class EnemyB(pygame.sprite.Sprite):
     def check_player_hits(self, player_sprite):
         if self.health <= 0:
             return 0
+        
+        #self=enemyB / player_sprite.bullets=grupp av bullets/om träffas tas bort bullet
         hits = pygame.sprite.spritecollide(self, player_sprite.bullets, dokill=True)
         attack = len(hits)
         if attack > 0:
@@ -169,30 +197,9 @@ class EnemyB(pygame.sprite.Sprite):
             if self.health <= 0:   
                 self.kill()
         return attack
-    
-
-
-    def reached_player_level(self, player_sprite):
-        if self.health <= 0:
-            return False
-        
-        try:
-            target_rect = player_sprite.rect
-            
-        except:
-            target_rect = player_sprite
-            
-        if self.rect.bottom >= target_rect.top:
-            try:
-                player_sprite.lives = 0   
-            except:
-                pass
-            return True
-
-        return False
             
     
-
+    # player träffar enemy eller inte
     def body_hit_player(self, player_sprite):
         if self.health <= 0:
             return False
@@ -204,21 +211,18 @@ class EnemyB(pygame.sprite.Sprite):
             target_rect = player_sprite
             
         if self.rect.colliderect(target_rect):
-            try:
-                player_sprite.lives = 0   
-            except:
-                pass
+            player_sprite.lives -= 1   
             return True
 
-        return False
-
-
+        
 
 #test part
 if __name__ == '__main__':
     pygame.init()
     screen = pygame.display.set_mode((900, 900))
-    pygame.display.set_caption("Enemy classes demo")
+    pygame.display.set_caption("Enemies")
+
+    #att kontrollera spels hastighet
     clock = pygame.time.Clock()
 
     
@@ -250,7 +254,7 @@ if __name__ == '__main__':
             player_rect.y += player_speed
 
         
-        #update enemy
+        #update enemies
         enemy_a.update(player_rect)
         enemy_b.update(player_rect)
 
@@ -265,7 +269,7 @@ if __name__ == '__main__':
             pygame.time.delay(900)
             running = False
 
-        
+        #rita
         screen.fill((0, 130, 130))
 
         
